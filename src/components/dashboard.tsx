@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
   Calculator,
   Book,
@@ -38,6 +38,18 @@ import {
 
 export default function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+
+  // Close sidebar when clicking outside on mobile
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768) {
+        setSidebarOpen(false)
+      }
+    }
+
+    window.addEventListener("resize", handleResize)
+    return () => window.removeEventListener("resize", handleResize)
+  }, [])
 
   const tools = [
     {
@@ -124,28 +136,100 @@ export default function Dashboard() {
 
   return (
     <div className="flex min-h-screen bg-background">
-      {/* Mobile sidebar backdrop */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm md:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-
-      {/* Sidebar */}
-      <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 border-r bg-card transition-transform duration-300 md:static md:translate-x-0 ${
+      {/* Mobile sidebar - completely separate from the main layout */}
+      <div 
+        className={`md:hidden fixed inset-0 z-50 transform transition-all duration-300 ease-in-out ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
+        {/* Backdrop with fade animation */}
+        <div 
+          className={`fixed inset-0 bg-background/80 backdrop-blur-sm transition-opacity duration-300 ${
+            sidebarOpen ? "opacity-100" : "opacity-0"
+          }`}
+          onClick={() => setSidebarOpen(false)}
+        />
+
+        {/* Sidebar content with slide animation */}
+        <div 
+          className={`relative w-64 max-w-[80%] bg-card h-full transform transition-transform duration-300 ease-out ${
+            sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
+        >
+          <div className="sticky top-0 z-20 flex h-16 items-center justify-between border-b px-4 bg-card">
+            <div className="flex items-center gap-2 font-semibold">
+              <GraduationCap className="h-6 w-6 text-primary" />
+              <span className="text-lg">SchoolPlayground</span>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setSidebarOpen(false)}
+              className="text-foreground hover:bg-secondary/50"
+            >
+              <X className="h-5 w-5" />
+            </Button>
+          </div>
+
+          <nav className="space-y-1 p-2">
+            <div className="w-full rounded-md bg-secondary p-2 flex items-center gap-2">
+              <Home className="h-5 w-5" />
+              <span>Dashboard</span>
+            </div>
+
+            <div className="w-full rounded-md p-2 flex items-center gap-2 hover:bg-secondary/50 cursor-pointer transition-colors">
+              <Calculator className="h-5 w-5" />
+              <span>Grade Calculator</span>
+            </div>
+
+            <div className="w-full rounded-md p-2 flex items-center gap-2 hover:bg-secondary/50 cursor-pointer transition-colors">
+              <Book className="h-5 w-5" />
+              <span>Study Resources</span>
+            </div>
+
+            <div className="w-full rounded-md p-2 flex items-center gap-2 hover:bg-secondary/50 cursor-pointer transition-colors">
+              <ClipboardList className="h-5 w-5" />
+              <span>Homework Planner</span>
+            </div>
+
+            <div className="w-full rounded-md p-2 flex items-center gap-2 hover:bg-secondary/50 cursor-pointer transition-colors">
+              <Brain className="h-5 w-5" />
+              <span>Exam Preparation</span>
+            </div>
+
+            <div className="w-full rounded-md p-2 flex items-center gap-2 hover:bg-secondary/50 cursor-pointer transition-colors">
+              <Calendar className="h-5 w-5" />
+              <span>Timetable</span>
+            </div>
+
+            <div className="w-full rounded-md p-2 flex items-center gap-2 hover:bg-secondary/50 cursor-pointer transition-colors">
+              <Users className="h-5 w-5" />
+              <span>Community</span>
+            </div>
+
+            <div className="pt-2">
+              <div className="text-xs font-semibold text-muted-foreground px-2 py-2">SUPPORT</div>
+              <div className="w-full rounded-md p-2 flex items-center gap-2 hover:bg-secondary/50 cursor-pointer transition-colors">
+                <HelpCircle className="h-5 w-5" />
+                <span>Help Center</span>
+              </div>
+
+              <div className="w-full rounded-md p-2 flex items-center gap-2 hover:bg-secondary/50 cursor-pointer transition-colors">
+                <Settings className="h-5 w-5" />
+                <span>Settings</span>
+              </div>
+            </div>
+          </nav>
+        </div>
+      </div>
+
+      {/* Desktop sidebar */}
+      <aside className="hidden md:block w-64 border-r bg-card">
         <div className="flex h-16 items-center border-b px-4">
           <div className="flex items-center gap-2 font-semibold">
             <GraduationCap className="h-6 w-6 text-primary" />
             <span className="text-lg">SchoolPlayground</span>
           </div>
-          <Button variant="ghost" size="icon" className="ml-auto md:hidden" onClick={() => setSidebarOpen(false)}>
-            <X className="h-5 w-5" />
-          </Button>
         </div>
         <nav className="space-y-1 p-2">
           <div className="w-full rounded-md bg-secondary p-2 flex items-center gap-2">
@@ -153,7 +237,6 @@ export default function Dashboard() {
             <span>Dashboard</span>
           </div>
 
-          {/* Navigation items with proper hover effect */}
           <div className="w-full rounded-md p-2 flex items-center gap-2 hover:bg-secondary/50 cursor-pointer transition-colors">
             <Calculator className="h-5 w-5" />
             <span>Grade Calculator</span>
@@ -202,7 +285,7 @@ export default function Dashboard() {
       {/* Main content */}
       <div className="flex-1 flex flex-col">
         {/* Header with higher z-index to prevent overlap issues */}
-        <header className="sticky top-0 z-50 flex h-16 items-center gap-4 border-b bg-background/95 backdrop-blur-sm px-4 shadow-sm">
+        <header className="sticky top-0 z-40 flex h-16 items-center gap-4 border-b bg-background/95 backdrop-blur-sm px-4 shadow-sm">
           <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setSidebarOpen(true)}>
             <Menu className="h-5 w-5" />
           </Button>

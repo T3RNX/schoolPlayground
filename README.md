@@ -15,7 +15,15 @@ No more switching between multiple websites—**SchoolPlayground** brings everyt
 
 If you want to work on this project as a collaborator, follow these simple steps to get the project running locally:
 
-
+# Status
+[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=T3RNX_schoolPlayground&metric=bugs)](https://sonarcloud.io/summary/new_code?id=T3RNX_schoolPlayground)
+[![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=T3RNX_schoolPlayground&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=T3RNX_schoolPlayground)
+[![Duplicated Lines (%)](https://sonarcloud.io/api/project_badges/measure?project=T3RNX_schoolPlayground&metric=duplicated_lines_density)](https://sonarcloud.io/summary/new_code?id=T3RNX_schoolPlayground)
+[![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=T3RNX_schoolPlayground&metric=ncloc)](https://sonarcloud.io/summary/new_code?id=T3RNX_schoolPlayground)
+[![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=T3RNX_schoolPlayground&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=T3RNX_schoolPlayground)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=T3RNX_schoolPlayground&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=T3RNX_schoolPlayground)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=T3RNX_schoolPlayground&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=T3RNX_schoolPlayground)
+[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=T3RNX_schoolPlayground&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=T3RNX_schoolPlayground)
 # Installation
 
 ## Prerequisites

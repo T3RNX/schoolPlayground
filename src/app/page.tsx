@@ -121,7 +121,8 @@ export default function Home() {
       <div className="mb-4 rounded-lg border-0 bg-card p-4 shadow-sm">
         <h2 className="text-lg font-semibold mb-2">Getting Started</h2>
         <p className="text-muted-foreground mb-3 text-sm">
-          New to SchoolPlayground? Here's how to make the most of our platform:
+          New to SchoolPlayground? Here&#39;s how to make the most of our
+          platform:
         </p>
         <div className="grid gap-3 md:grid-cols-3">
           <div className="flex flex-col items-center text-center p-3 rounded-lg bg-muted/50">

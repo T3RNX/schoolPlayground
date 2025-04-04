@@ -164,9 +164,9 @@ export default function Home() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-        {tools.map((tool, index) => (
+        {tools.map((tool) => (
           <Link
-            key={index}
+            key={tool.link}
             href={tool.link}
             className="block h-full transition-all duration-200 focus:outline-none rounded-lg"
           >

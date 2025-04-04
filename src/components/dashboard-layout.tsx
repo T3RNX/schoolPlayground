@@ -39,7 +39,7 @@ import { NavItem } from "@/components/nav-item";
 export default function DashboardLayout({
   children,
 }: {
-  children: React.ReactNode;
+  readonly children: React.ReactNode;
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
@@ -75,20 +75,12 @@ export default function DashboardLayout({
         }`}
       >
         {/* Backdrop with fade animation */}
-        <div
-          role="button"
-          tabIndex={0}
+        <button
           aria-label="Close sidebar"
-          className={`fixed inset-0 bg-background/80 backdrop-blur-sm transition-opacity duration-300 ${
+          className={`fixed inset-0 bg-background/80 backdrop-blur-sm transition-opacity duration-300 border-0 appearance-none outline-none ${
             sidebarOpen ? "opacity-100" : "opacity-0"
           }`}
           onClick={closeSidebar}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              closeSidebar();
-            }
-          }}
         />
 
         {/* Sidebar content with slide animation */}

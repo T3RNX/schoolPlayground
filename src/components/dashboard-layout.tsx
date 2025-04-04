@@ -76,10 +76,19 @@ export default function DashboardLayout({
       >
         {/* Backdrop with fade animation */}
         <div
+          role="button"
+          tabIndex={0}
+          aria-label="Close sidebar"
           className={`fixed inset-0 bg-background/80 backdrop-blur-sm transition-opacity duration-300 ${
             sidebarOpen ? "opacity-100" : "opacity-0"
           }`}
           onClick={closeSidebar}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              closeSidebar();
+            }
+          }}
         />
 
         {/* Sidebar content with slide animation */}

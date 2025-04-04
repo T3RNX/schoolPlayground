@@ -176,7 +176,7 @@ export default function DashboardLayout({
       </div>
 
       {/* Desktop sidebar */}
-      <aside className="hidden md:block w-64 border-r bg-card">
+      <aside className="hidden md:block w-64 border-r bg-card sticky top-0 h-screen overflow-y-auto">
         <div className="flex h-16 items-center border-b px-4">
           <div className="flex items-center gap-2 font-semibold">
             <GraduationCap className="h-6 w-6 text-primary" />

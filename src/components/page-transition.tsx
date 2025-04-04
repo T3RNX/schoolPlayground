@@ -5,7 +5,11 @@ import type React from "react";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
-export function PageTransition({ children }: { children: React.ReactNode }) {
+export function PageTransition({
+  children,
+}: {
+  readonly children: React.ReactNode;
+}) {
   const pathname = usePathname();
   const [isVisible, setIsVisible] = useState(true);
 

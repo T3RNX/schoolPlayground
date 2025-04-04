@@ -7,10 +7,10 @@ import { usePathname } from "next/navigation";
 import type { LucideIcon } from "lucide-react";
 
 interface NavItemProps {
-  href: string;
-  icon: LucideIcon;
-  label: string;
-  onNavigate?: () => void;
+  readonly href: string;
+  readonly icon: LucideIcon;
+  readonly label: string;
+  readonly onNavigate?: () => void;
 }
 
 export function NavItem({ href, icon: Icon, label, onNavigate }: NavItemProps) {
@@ -21,11 +21,11 @@ export function NavItem({ href, icon: Icon, label, onNavigate }: NavItemProps) {
     // If we're already on this page, prevent navigation and just close sidebar
     if (isActive) {
       e.preventDefault();
-      if (onNavigate) onNavigate();
-    } else {
+      onNavigate?.();
+    } else if (onNavigate) {
       // For other pages, let the navigation happen naturally
       // and the onNavigate will be called by the Link component
-      if (onNavigate) onNavigate();
+      onNavigate();
     }
   };
 

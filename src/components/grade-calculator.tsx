@@ -15,7 +15,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-// Add more rounding options
 const roundingMethods = {
   nearest: {
     name: "Round to nearest",
@@ -51,7 +50,6 @@ const roundingMethods = {
   },
 };
 
-// Add grading methods
 const gradingMethods = {
   linear: {
     name: "Linear",
@@ -67,7 +65,6 @@ const gradingMethods = {
   },
 };
 
-// Update the grading systems to include custom formulas for different grading methods
 const gradingSystems = {
   switzerland: {
     name: "Switzerland",
@@ -90,17 +87,17 @@ const gradingSystems = {
         );
       } else if (method === "custom" && customSettings?.formula) {
         try {
-          // This is a simplified approach - in a real app you'd want a safer formula evaluation
-          const formula = customSettings.formula
-            .replace(/achieved/g, achieved.toString())
-            .replace(/maximum/g, maximum.toString());
-          return eval(formula);
+          const safeEvaluate = new Function(
+            "achieved",
+            "maximum",
+            `"use strict"; return (${customSettings.formula});`
+          );
+          return safeEvaluate(achieved, maximum);
         } catch (e) {
           console.error("Error evaluating custom formula:", e);
-          return 1; // Fallback to minimum grade
+          return 1;
         }
       }
-      // Default linear formula
       return 5 * (achieved / maximum) + 1;
     },
   },
@@ -125,16 +122,17 @@ const gradingSystems = {
         );
       } else if (method === "custom" && customSettings?.formula) {
         try {
-          const formula = customSettings.formula
-            .replace(/achieved/g, achieved.toString())
-            .replace(/maximum/g, maximum.toString());
-          return eval(formula);
+          const safeEvaluate = new Function(
+            "achieved",
+            "maximum",
+            `"use strict"; return (${customSettings.formula});`
+          );
+          return safeEvaluate(achieved, maximum);
         } catch (e) {
           console.error("Error evaluating custom formula:", e);
-          return 6; // Fallback to minimum grade (in Germany, 6 is worst)
+          return 6;
         }
       }
-      // Default linear formula
       return 6 - 5 * (achieved / maximum);
     },
   },
@@ -159,16 +157,17 @@ const gradingSystems = {
         );
       } else if (method === "custom" && customSettings?.formula) {
         try {
-          const formula = customSettings.formula
-            .replace(/achieved/g, achieved.toString())
-            .replace(/maximum/g, maximum.toString());
-          return eval(formula);
+          const safeEvaluate = new Function(
+            "achieved",
+            "maximum",
+            `"use strict"; return (${customSettings.formula});`
+          );
+          return safeEvaluate(achieved, maximum);
         } catch (e) {
           console.error("Error evaluating custom formula:", e);
-          return 0; // Fallback to minimum grade
+          return 0;
         }
       }
-      // Default linear formula
       return (achieved / maximum) * 100;
     },
   },
@@ -193,16 +192,17 @@ const gradingSystems = {
         );
       } else if (method === "custom" && customSettings?.formula) {
         try {
-          const formula = customSettings.formula
-            .replace(/achieved/g, achieved.toString())
-            .replace(/maximum/g, maximum.toString());
-          return eval(formula);
+          const safeEvaluate = new Function(
+            "achieved",
+            "maximum",
+            `"use strict"; return (${customSettings.formula});`
+          );
+          return safeEvaluate(achieved, maximum);
         } catch (e) {
           console.error("Error evaluating custom formula:", e);
-          return customSettings.min || 0; // Fallback to minimum grade
+          return customSettings.min || 0;
         }
       }
-      // Default linear formula - scale to the custom range
       const min = customSettings?.min || 0;
       const max = customSettings?.max || 10;
       return min + (achieved / maximum) * (max - min);
@@ -210,7 +210,6 @@ const gradingSystems = {
   },
 };
 
-// Helper function for stepwise grading
 function calculateStepwiseGrade(
   achieved: number,
   maximum: number,
@@ -220,17 +219,14 @@ function calculateStepwiseGrade(
 ) {
   const percentage = (achieved / maximum) * 100;
 
-  // Sort steps by percentage threshold
   const sortedSteps = [...steps].sort((a, b) => a.threshold - b.threshold);
 
-  // Find the appropriate grade based on percentage
   for (const step of sortedSteps) {
     if (percentage <= step.threshold) {
       return step.grade;
     }
   }
 
-  // If no step matches (should not happen if steps are properly defined)
   return max;
 }
 
@@ -266,7 +262,6 @@ export function GradeCalculator() {
   ]);
   const [averageGrade, setAverageGrade] = useState<number | null>(null);
 
-  // New state for extended mode
   const [showExtendedMode, setShowExtendedMode] = useState(false);
   const [roundingMethod, setRoundingMethod] = useState("nearest");
   const [roundingPrecision, setRoundingPrecision] = useState(2);
@@ -285,7 +280,6 @@ export function GradeCalculator() {
     { id: "5", threshold: 90, grade: 6 },
   ]);
 
-  // Get the selected system, with custom values if using custom system
   const getSelectedSystem = () => {
     const baseSystem = gradingSystems[system as keyof typeof gradingSystems];
 
@@ -319,7 +313,6 @@ export function GradeCalculator() {
       return;
     }
 
-    // Get custom settings for the formula
     const customSettings = {
       min: Number(customMin),
       max: Number(customMax),
@@ -328,7 +321,6 @@ export function GradeCalculator() {
       formula: customFormula,
     };
 
-    // Calculate the raw grade
     const rawGrade = selectedSystem.formula(
       achieved,
       max,
@@ -336,7 +328,6 @@ export function GradeCalculator() {
       customSettings
     );
 
-    // Apply rounding
     const roundingFunction =
       roundingMethods[roundingMethod as keyof typeof roundingMethods].function;
     const roundedGrade = roundingFunction(rawGrade, roundingPrecision);
@@ -368,7 +359,6 @@ export function GradeCalculator() {
 
     const average = weightedSum / totalWeight;
 
-    // Apply rounding to the average
     const roundingFunction =
       roundingMethods[roundingMethod as keyof typeof roundingMethods].function;
     const roundedAverage = roundingFunction(average, roundingPrecision);
@@ -400,7 +390,6 @@ export function GradeCalculator() {
     );
   };
 
-  // New functions for steps in stepwise grading
   const addStep = () => {
     const lastStep = steps[steps.length - 1];
     const newThreshold = lastStep ? Math.min(lastStep.threshold + 10, 100) : 50;
@@ -436,32 +425,27 @@ export function GradeCalculator() {
       system === "custom" ? Number(customPass) : selectedSystem.pass;
 
     if (system === "germany") {
-      // In Germany, lower is better (1 is best, 6 is worst)
       return grade <= passGrade
         ? "text-green-500 dark:text-green-400"
         : "text-red-500 dark:text-red-400";
     } else {
-      // In other systems, higher is better
       return grade >= passGrade
         ? "text-green-500 dark:text-green-400"
         : "text-red-500 dark:text-red-400";
     }
   };
 
-  // Reset extended settings when changing grading system
   const handleSystemChange = (newSystem: string) => {
     setSystem(newSystem);
     setCalculatedGrade(null);
     setAverageGrade(null);
 
-    // Reset custom settings if switching to a predefined system
     if (newSystem !== "custom") {
       const system = gradingSystems[newSystem as keyof typeof gradingSystems];
       setCustomMin(system.min.toString());
       setCustomMax(system.max.toString());
       setCustomPass(system.pass.toString());
 
-      // Update steps based on the new system
       const newSteps: Step[] = [];
       const range = system.max - system.min;
       const stepCount = 5;
@@ -478,7 +462,6 @@ export function GradeCalculator() {
 
       setSteps(newSteps);
 
-      // Update custom formula based on the system
       if (newSystem === "switzerland") {
         setCustomFormula("5 * (achieved / maximum) + 1");
       } else if (newSystem === "germany") {
@@ -528,7 +511,6 @@ export function GradeCalculator() {
         </div>
       </div>
 
-      {/* Extended Mode Toggle */}
       <div className="mb-6">
         <Button
           variant="outline"
@@ -547,12 +529,10 @@ export function GradeCalculator() {
         </Button>
       </div>
 
-      {/* Extended Mode Settings */}
       {showExtendedMode && (
         <div className="mb-6 p-4 bg-muted/30 rounded-lg space-y-4">
           <h3 className="font-medium text-sm mb-2">Advanced Grading Options</h3>
 
-          {/* Custom Grade Range (only for custom system) */}
           {system === "custom" && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
@@ -594,7 +574,6 @@ export function GradeCalculator() {
             </div>
           )}
 
-          {/* Rounding Method */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="rounding-method" className="mb-2 block">
@@ -636,7 +615,6 @@ export function GradeCalculator() {
             </div>
           </div>
 
-          {/* Grading Method */}
           <div>
             <Label htmlFor="grading-method" className="mb-2 block">
               Grading Method
@@ -661,7 +639,6 @@ export function GradeCalculator() {
             </p>
           </div>
 
-          {/* Custom Formula (only for custom formula method) */}
           {gradingMethod === "custom" && (
             <div>
               <Label htmlFor="custom-formula" className="mb-2 block">
@@ -681,7 +658,6 @@ export function GradeCalculator() {
             </div>
           )}
 
-          {/* Stepwise Grading (only for stepwise method) */}
           {gradingMethod === "stepwise" && (
             <div className="space-y-2">
               <div className="flex items-center justify-between">

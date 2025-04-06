@@ -52,7 +52,12 @@ export function GradeGoals() {
     if (system === "germany") {
       const range = current - max
       const position = target - max
-      const newProgress = Math.min(100, Math.max(0, (position / range) * 100))
+      let newProgress
+      if (range === 0) {
+        newProgress = 100
+      } else {
+        newProgress = Math.min(100, Math.max(0, (position / range) * 100))
+      }
       setProgress(Math.round(newProgress))
       return
     }

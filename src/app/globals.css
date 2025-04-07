@@ -127,3 +127,15 @@
     @apply bg-background text-foreground;
   }
 }
+
+button,
+select,
+[role="button"],
+a,
+input[type="submit"],
+input[type="button"],
+input[type="checkbox"],
+input[type="radio"],
+.clickable {
+  cursor: pointer;
+}

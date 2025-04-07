@@ -1,3 +1,5 @@
+import { evaluate } from "mathjs";
+
 export type Step = {
   id: string;
   threshold: number;
@@ -100,20 +102,12 @@ export function defaultFormula(
     );
   } else if (method === "custom" && customSettings?.formula) {
     try {
-      const safeEvaluate = new Function(
-        "achieved",
-        "maximum",
-        "min",
-        "max",
-        `"use strict"; 
-        // Validate inputs are numbers
-        if (typeof achieved !== 'number' || typeof maximum !== 'number' ||
-            typeof min !== 'number' || typeof max !== 'number') {
-          throw new Error("Invalid inputs");
-        }
-        return (${customSettings.formula});`
-      );
-      return safeEvaluate(achieved, maximum, min, max);
+      return evaluate(customSettings.formula, {
+        achieved,
+        maximum,
+        min,
+        max,
+      });
     } catch (e) {
       console.error("Error evaluating custom formula:", e);
       return min;

@@ -1,6 +1,6 @@
-import { GradeCalculator } from "@/components/grade-calculator";
-import { GradeHistory } from "@/components/grade-history";
-import { GradeGoals } from "@/components/grade-goals";
+import { GradeCalculator } from "@/components/gradeCalculator/grade-calculator";
+import { GradeHistory } from "@/components/gradeCalculator/grade-history";
+import { GradeGoals } from "@/components/gradeCalculator/grade-goals";
 
 export default function GradeCalculatorPage() {
   return (

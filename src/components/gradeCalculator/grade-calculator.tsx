@@ -14,41 +14,13 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-
-const roundingMethods = {
-  nearest: {
-    name: "Round to nearest",
-    description: "Round to the nearest whole number",
-    function: (value: number, precision: number) => {
-      const factor = Math.pow(10, precision);
-      return Math.round(value * factor) / factor;
-    },
-  },
-  floor: {
-    name: "Round down (floor)",
-    description: "Round down to the nearest whole number",
-    function: (value: number, precision: number) => {
-      const factor = Math.pow(10, precision);
-      return Math.floor(value * factor) / factor;
-    },
-  },
-  ceiling: {
-    name: "Round up (ceiling)",
-    description: "Round up to the nearest whole number",
-    function: (value: number, precision: number) => {
-      const factor = Math.pow(10, precision);
-      return Math.ceil(value * factor) / factor;
-    },
-  },
-  truncate: {
-    name: "Truncate (cut off)",
-    description: "Cut off decimal places without rounding",
-    function: (value: number, precision: number) => {
-      const factor = Math.pow(10, precision);
-      return Math.trunc(value * factor) / factor;
-    },
-  },
-};
+import {
+  roundingMethods,
+  calculateStepwiseGrade,
+  defaultFormula,
+  type Step,
+  type CustomGradeSettings,
+} from "@/components/gradeCalculator/gradeUtils";
 
 const gradingMethods = {
   linear: {
@@ -71,105 +43,21 @@ const gradingSystems = {
     min: 1,
     max: 6,
     pass: 4,
-    formula: (
-      achieved: number,
-      maximum: number,
-      method: string,
-      customSettings: CustomGradeSettings
-    ) => {
-      if (method === "stepwise" && customSettings?.steps?.length > 0) {
-        return calculateStepwiseGrade(
-          achieved,
-          maximum,
-          customSettings.steps,
-          customSettings.min,
-          customSettings.max
-        );
-      } else if (method === "custom" && customSettings?.formula) {
-        try {
-          const safeEvaluate = new Function(
-            "achieved",
-            "maximum",
-            `"use strict"; return (${customSettings.formula});`
-          );
-          return safeEvaluate(achieved, maximum);
-        } catch (e) {
-          console.error("Error evaluating custom formula:", e);
-          return 1;
-        }
-      }
-      return 5 * (achieved / maximum) + 1;
-    },
+    formula: defaultFormula,
   },
   germany: {
     name: "Germany",
     min: 1,
     max: 6,
     pass: 4,
-    formula: (
-      achieved: number,
-      maximum: number,
-      method: string,
-      customSettings: CustomGradeSettings
-    ) => {
-      if (method === "stepwise" && customSettings?.steps?.length > 0) {
-        return calculateStepwiseGrade(
-          achieved,
-          maximum,
-          customSettings.steps,
-          customSettings.min,
-          customSettings.max
-        );
-      } else if (method === "custom" && customSettings?.formula) {
-        try {
-          const safeEvaluate = new Function(
-            "achieved",
-            "maximum",
-            `"use strict"; return (${customSettings.formula});`
-          );
-          return safeEvaluate(achieved, maximum);
-        } catch (e) {
-          console.error("Error evaluating custom formula:", e);
-          return 6;
-        }
-      }
-      return 6 - 5 * (achieved / maximum);
-    },
+    formula: defaultFormula,
   },
   usa: {
     name: "USA",
     min: 0,
     max: 100,
     pass: 60,
-    formula: (
-      achieved: number,
-      maximum: number,
-      method: string,
-      customSettings: CustomGradeSettings
-    ) => {
-      if (method === "stepwise" && customSettings?.steps?.length > 0) {
-        return calculateStepwiseGrade(
-          achieved,
-          maximum,
-          customSettings.steps,
-          customSettings.min,
-          customSettings.max
-        );
-      } else if (method === "custom" && customSettings?.formula) {
-        try {
-          const safeEvaluate = new Function(
-            "achieved",
-            "maximum",
-            `"use strict"; return (${customSettings.formula});`
-          );
-          return safeEvaluate(achieved, maximum);
-        } catch (e) {
-          console.error("Error evaluating custom formula:", e);
-          return 0;
-        }
-      }
-      return (achieved / maximum) * 100;
-    },
+    formula: defaultFormula,
   },
   custom: {
     name: "Custom",
@@ -203,32 +91,12 @@ const gradingSystems = {
           return customSettings.min || 0;
         }
       }
-      const min = customSettings?.min || 0;
-      const max = customSettings?.max || 10;
+      const min = customSettings?.min ?? 0;
+      const max = customSettings?.max ?? 10;
       return min + (achieved / maximum) * (max - min);
     },
   },
 };
-
-function calculateStepwiseGrade(
-  achieved: number,
-  maximum: number,
-  steps: Step[],
-  min: number,
-  max: number
-) {
-  const percentage = (achieved / maximum) * 100;
-
-  const sortedSteps = [...steps].sort((a, b) => a.threshold - b.threshold);
-
-  for (const step of sortedSteps) {
-    if (percentage <= step.threshold) {
-      return step.grade;
-    }
-  }
-
-  return max;
-}
 
 type GradeEntry = {
   id: string;
@@ -236,21 +104,8 @@ type GradeEntry = {
   weight: string;
 };
 
-type Step = {
-  id: string;
-  threshold: number;
-  grade: number;
-};
-
-type CustomGradeSettings = {
-  min: number;
-  max: number;
-  pass: number;
-  steps: Step[];
-  formula: string;
-};
-
 export function GradeCalculator() {
+  const [roundingStep, setRoundingStep] = useState<number>(0.1);
   const [activeTab, setActiveTab] = useState("points");
   const [system, setSystem] = useState("switzerland");
   const [maximumPoints, setMaximumPoints] = useState("");
@@ -280,6 +135,52 @@ export function GradeCalculator() {
     { id: "5", threshold: 90, grade: 6 },
   ]);
 
+  const calculateAverage = () => {
+    const validEntries = gradeEntries.filter(
+      (entry) => entry.grade.trim() !== "" && !isNaN(Number(entry.grade))
+    );
+
+    if (validEntries.length === 0) return;
+
+    let weightedSum = 0;
+    let totalWeight = 0;
+
+    for (const entry of validEntries) {
+      const grade = Number(entry.grade);
+      const weight = Number(entry.weight) || 1;
+
+      if (
+        isNaN(grade) ||
+        grade < selectedSystem.min ||
+        grade > selectedSystem.max
+      ) {
+        continue;
+      }
+
+      weightedSum += grade * weight;
+      totalWeight += weight;
+    }
+
+    if (totalWeight === 0) return;
+
+    const rawAverage = weightedSum / totalWeight;
+
+    let roundedAverage;
+    if (roundingMethod === "stepRounding") {
+      roundedAverage = roundingMethods.stepRounding.function(
+        rawAverage,
+        roundingPrecision,
+        roundingStep
+      );
+    } else {
+      const roundingFunction =
+        roundingMethods[roundingMethod as keyof typeof roundingMethods]
+          .function;
+      roundedAverage = roundingFunction(rawAverage, roundingPrecision);
+    }
+
+    setAverageGrade(roundedAverage);
+  };
   const getSelectedSystem = () => {
     const baseSystem = gradingSystems[system as keyof typeof gradingSystems];
 
@@ -314,56 +215,54 @@ export function GradeCalculator() {
     }
 
     const customSettings = {
-      min: Number(customMin),
-      max: Number(customMax),
-      pass: Number(customPass),
+      min: selectedSystem.min,
+      max: selectedSystem.max,
+      pass: selectedSystem.pass,
       steps: steps,
       formula: customFormula,
     };
 
-    const rawGrade = selectedSystem.formula(
+    if (system === "custom") {
+      customSettings.min = Number(customMin);
+      customSettings.max = Number(customMax);
+      customSettings.pass = Number(customPass);
+    }
+
+    let rawGrade = selectedSystem.formula(
       achieved,
       max,
       gradingMethod,
       customSettings
     );
 
-    const roundingFunction =
-      roundingMethods[roundingMethod as keyof typeof roundingMethods].function;
-    const roundedGrade = roundingFunction(rawGrade, roundingPrecision);
+    console.log(`Raw grade calculation: ${rawGrade}`);
 
-    setCalculatedGrade(roundedGrade);
-  };
-
-  const calculateAverage = () => {
-    const validEntries = gradeEntries.filter(
-      (entry) => entry.grade !== "" && entry.weight !== ""
+    rawGrade = Math.max(
+      customSettings.min,
+      Math.min(customSettings.max, rawGrade)
     );
 
-    if (validEntries.length === 0) return;
+    console.log(`After min/max bounds: ${rawGrade}`);
 
-    let totalWeight = 0;
-    let weightedSum = 0;
-
-    for (const entry of validEntries) {
-      const grade = Number.parseFloat(entry.grade);
-      const weight = Number.parseFloat(entry.weight);
-
-      if (isNaN(grade) || isNaN(weight) || weight <= 0) continue;
-
-      totalWeight += weight;
-      weightedSum += grade * weight;
+    let roundedGrade;
+    if (roundingMethod === "stepRounding") {
+      roundedGrade = roundingMethods.stepRounding.function(
+        rawGrade,
+        roundingPrecision,
+        roundingStep
+      );
+    } else {
+      const roundingFunction =
+        roundingMethods[roundingMethod as keyof typeof roundingMethods]
+          .function;
+      roundedGrade = roundingFunction(rawGrade, roundingPrecision);
     }
 
-    if (totalWeight === 0) return;
+    console.log(
+      `After rounding (${roundingMethod}, step: ${roundingStep}): ${roundedGrade}`
+    );
 
-    const average = weightedSum / totalWeight;
-
-    const roundingFunction =
-      roundingMethods[roundingMethod as keyof typeof roundingMethods].function;
-    const roundedAverage = roundingFunction(average, roundingPrecision);
-
-    setAverageGrade(roundedAverage);
+    setCalculatedGrade(roundedGrade);
   };
 
   const addGradeEntry = () => {
@@ -463,11 +362,14 @@ export function GradeCalculator() {
       setSteps(newSteps);
 
       if (newSystem === "switzerland") {
-        setCustomFormula("5 * (achieved / maximum) + 1");
+        setCustomFormula("min + (achieved / maximum) * (max - min)");
+        setGradingMethod("linear");
       } else if (newSystem === "germany") {
-        setCustomFormula("6 - 5 * (achieved / maximum)");
+        setCustomFormula("max - (achieved / maximum) * (max - min)");
+        setGradingMethod("linear");
       } else if (newSystem === "usa") {
         setCustomFormula("(achieved / maximum) * 100");
+        setGradingMethod("linear");
       }
     }
   };
@@ -599,20 +501,46 @@ export function GradeCalculator() {
                 }
               </p>
             </div>
-            <div>
-              <Label htmlFor="rounding-precision" className="mb-2 block">
-                Decimal Places
-              </Label>
-              <Input
-                id="rounding-precision"
-                type="number"
-                min="0"
-                max="5"
-                value={roundingPrecision}
-                onChange={(e) => setRoundingPrecision(Number(e.target.value))}
-                placeholder="Decimal places"
-              />
-            </div>
+
+            {roundingMethod === "stepRounding" ? (
+              <div>
+                <Label htmlFor="rounding-step" className="mb-2 block">
+                  Rounding Step
+                </Label>
+                <select
+                  id="rounding-step"
+                  value={roundingStep.toString()}
+                  onChange={(e) => setRoundingStep(Number(e.target.value))}
+                  className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                >
+                  <option value="1">1.0</option>
+                  <option value="0.5">0.5</option>
+                  <option value="0.25">0.25</option>
+                  <option value="0.2">0.2</option>
+                  <option value="0.1">0.1</option>
+                  <option value="0.05">0.05</option>
+                  <option value="0.01">0.01</option>
+                </select>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Round to the nearest {roundingStep} increment
+                </p>
+              </div>
+            ) : (
+              <div>
+                <Label htmlFor="rounding-precision" className="mb-2 block">
+                  Decimal Places
+                </Label>
+                <Input
+                  id="rounding-precision"
+                  type="number"
+                  min="0"
+                  max="5"
+                  value={roundingPrecision}
+                  onChange={(e) => setRoundingPrecision(Number(e.target.value))}
+                  placeholder="Decimal places"
+                />
+              </div>
+            )}
           </div>
 
           <div>
@@ -652,8 +580,8 @@ export function GradeCalculator() {
               />
               <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
                 <Info className="h-3 w-3" />
-                Use &apos;achieved&apos; for points earned and
-                &apos;maximum&apos; for total possible points
+                Available variables: &apos;achieved&apos;, &apos;maximum&apos;,
+                &apos;min&apos;, and &apos;max&apos;
               </p>
             </div>
           )}
@@ -818,7 +746,9 @@ export function GradeCalculator() {
                   calculatedGrade
                 )}`}
               >
-                {calculatedGrade}
+                {typeof calculatedGrade === "number"
+                  ? calculatedGrade.toFixed(roundingPrecision)
+                  : calculatedGrade}
               </p>
               <p className="text-sm text-muted-foreground mt-2">
                 {calculatedGrade >= selectedSystem.pass
@@ -901,7 +831,9 @@ export function GradeCalculator() {
               <p
                 className={`text-3xl font-bold ${getGradeColor(averageGrade)}`}
               >
-                {averageGrade}
+                {typeof averageGrade === "number"
+                  ? averageGrade.toFixed(roundingPrecision)
+                  : averageGrade}
               </p>
               <p className="text-sm text-muted-foreground mt-2">
                 {averageGrade >= selectedSystem.pass

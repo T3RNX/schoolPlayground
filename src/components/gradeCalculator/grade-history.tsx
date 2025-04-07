@@ -1,20 +1,19 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Clock } from "lucide-react"
-import { Card } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
+import { useState } from "react";
+import { Clock } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 type HistoryEntry = {
-  id: string
-  date: Date
-  system: string
-  grade: number
-  details: string
-}
+  id: string;
+  date: Date;
+  system: string;
+  grade: number;
+  details: string;
+};
 
 export function GradeHistory() {
-  // In a real app, you'd fetch this from a database or localStorage
   const [history, setHistory] = useState<HistoryEntry[]>([
     {
       id: "1",
@@ -37,16 +36,17 @@ export function GradeHistory() {
       grade: 3.5,
       details: "Chemistry Exam: 18/30 points",
     },
-  ])
+  ]);
 
   const clearHistory = () => {
-    // In a real app, you'd also clear from storage
-    setHistory([])
-  }
+    setHistory([]);
+  };
 
   const getGradeColor = (grade: number) => {
-    return grade >= 4 ? "text-green-500 dark:text-green-400" : "text-red-500 dark:text-red-400"
-  }
+    return grade >= 4
+      ? "text-green-500 dark:text-green-400"
+      : "text-red-500 dark:text-red-400";
+  };
 
   return (
     <Card className="p-6 border-0 shadow-sm">
@@ -80,13 +80,16 @@ export function GradeHistory() {
                     {entry.date.toLocaleDateString()} • {entry.system}
                   </p>
                 </div>
-                <p className={`text-xl font-bold ${getGradeColor(entry.grade)}`}>{entry.grade}</p>
+                <p
+                  className={`text-xl font-bold ${getGradeColor(entry.grade)}`}
+                >
+                  {entry.grade}
+                </p>
               </div>
             </div>
           ))}
         </div>
       )}
     </Card>
-  )
+  );
 }
-

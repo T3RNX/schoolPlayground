@@ -255,7 +255,7 @@ export function GradeGoals() {
           </div>
         ) : (
           <p className="text-center text-sm text-muted-foreground">
-            You're {progress}% of the way to your goal!
+            You&apos;re {progress}% of the way to your goal!
             {system === "germany"
               ? " (Lower grades are better in Germany)"
               : ""}
@@ -267,7 +267,7 @@ export function GradeGoals() {
         <div className="mt-6 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-900">
           <h4 className="font-medium mb-2 flex items-center gap-2">
             <PartyPopper className="h-4 w-4" />
-            You've reached your target!
+            You&apos;ve reached your target!
           </h4>
           <p className="text-sm text-muted-foreground">
             Great job achieving your grade goal! Consider setting a new, more

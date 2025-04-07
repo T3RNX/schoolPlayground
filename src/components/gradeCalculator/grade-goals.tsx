@@ -35,13 +35,23 @@ const gradingSystems = {
   },
 };
 
+type ConfettiParticle = {
+  id: number;
+  x: number;
+  y: number;
+  color: string;
+  size: number;
+  speed: number;
+  angle: number;
+};
+
 export function GradeGoals() {
   const [system, setSystem] = useState("switzerland");
   const [currentGrade, setCurrentGrade] = useState("4.2");
   const [targetGrade, setTargetGrade] = useState("5.0");
   const [progress, setProgress] = useState(70);
   const [showCelebration, setShowCelebration] = useState(false);
-  const [confetti, setConfetti] = useState<any[]>([]);
+  const [confetti, setConfetti] = useState<ConfettiParticle[]>([]);
 
   const selectedSystem = gradingSystems[system as keyof typeof gradingSystems];
 

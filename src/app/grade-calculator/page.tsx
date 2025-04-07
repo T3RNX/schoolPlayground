@@ -13,10 +13,8 @@ export default function GradeCalculatorPage() {
       </div>
 
       <div className="grid gap-4">
-        {/* Main calculator card */}
         <GradeCalculator />
 
-        {/* Additional cards for related features */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <GradeHistory />
           <GradeGoals />

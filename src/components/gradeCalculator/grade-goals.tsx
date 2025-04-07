@@ -45,15 +45,11 @@ export function GradeGoals() {
 
   const selectedSystem = gradingSystems[system as keyof typeof gradingSystems];
 
-  // New function to trigger celebration that can be called repeatedly
   const triggerCelebration = () => {
-    // Reset the animation state briefly to allow re-triggering
     setShowCelebration(false);
 
-    // Reset confetti first to clear old particles
     setConfetti([]);
 
-    // Use a short timeout to ensure the DOM has updated
     setTimeout(() => {
       setShowCelebration(true);
       generateConfetti();
@@ -61,10 +57,8 @@ export function GradeGoals() {
   };
 
   useEffect(() => {
-    // Just clean up confetti after animation, but don't hide celebration UI
     if (showCelebration) {
       const timer = setTimeout(() => {
-        // Only clear confetti, keep the celebration UI visible
         setConfetti([]);
       }, 3000);
       return () => clearTimeout(timer);
@@ -103,31 +97,25 @@ export function GradeGoals() {
 
     if (isNaN(current) || isNaN(target)) return;
 
-    // Check if they've already reached their goal
-    // For Germany, lower is better (goal reached if current <= target)
-    // For others, higher is better (goal reached if current >= target)
     const goalReached =
       system === "germany" ? current <= target : current >= target;
 
     if (goalReached) {
       setProgress(100);
-      triggerCelebration(); // Use the new function
+      triggerCelebration();
       return;
     }
 
     const { min, max } = selectedSystem;
 
-    // For Germany, we need to invert the calculation since 1 is best and 6 is worst
     if (system === "germany") {
-      // Calculate how far they've gone from max (worst) toward target
-      const range = target - max; // How far from worst to target
-      const position = current - max; // How far from worst to current
+      const range = target - max;
+      const position = current - max;
       const newProgress = Math.min(100, Math.max(0, (position / range) * 100));
       setProgress(Math.round(newProgress));
       return;
     }
 
-    // For Switzerland and USA (where higher is better)
     const range = target - min;
     const position = current - min;
     const newProgress = Math.min(100, Math.max(0, (position / range) * 100));
@@ -137,16 +125,13 @@ export function GradeGoals() {
   const handleSystemChange = (newSystem: string) => {
     setSystem(newSystem);
 
-    // Reset values based on selected system
     if (newSystem === "germany") {
-      // For Germany, set target lower than current (since lower is better)
       setCurrentGrade("3.5");
-      setTargetGrade("2.0"); // Target is better (lower) than current
+      setTargetGrade("2.0");
     } else if (newSystem === "usa") {
       setCurrentGrade("70");
       setTargetGrade("85");
     } else {
-      // Switzerland
       setCurrentGrade("4.2");
       setTargetGrade("5.0");
     }
@@ -157,7 +142,6 @@ export function GradeGoals() {
 
   return (
     <Card className="p-6 border-0 shadow-sm relative overflow-hidden">
-      {/* Confetti animation */}
       {showCelebration && (
         <div className="absolute inset-0 pointer-events-none">
           {confetti.map((particle) => (

@@ -80,12 +80,7 @@ const gradingSystems = {
         );
       } else if (method === "custom" && customSettings?.formula) {
         try {
-          const safeEvaluate = new Function(
-            "achieved",
-            "maximum",
-            `"use strict"; return (${customSettings.formula});`
-          );
-          return safeEvaluate(achieved, maximum);
+          return defaultFormula(achieved, maximum, method, customSettings);
         } catch (e) {
           console.error("Error evaluating custom formula:", e);
           return customSettings.min || 0;

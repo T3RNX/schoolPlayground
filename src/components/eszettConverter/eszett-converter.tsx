@@ -183,7 +183,18 @@ export function EszettConverter({
       "Heißes Wasser fließt durch die Röhre.",
       "Der Fuß des Berges ist sehr steil und weiß.",
     ]
-    const randomText = sampleTexts[Math.floor(Math.random() * sampleTexts.length)]
+
+    // Use a more secure random selection if available, otherwise fall back to Math.random
+    let index
+    if (isClient && window.crypto && window.crypto.getRandomValues) {
+      const array = new Uint32Array(1)
+      window.crypto.getRandomValues(array)
+      index = array[0] % sampleTexts.length
+    } else {
+      index = Math.floor(Math.random() * sampleTexts.length)
+    }
+
+    const randomText = sampleTexts[index]
     setText(randomText)
     setLastAction("Loaded sample text")
     showActionFeedback()
@@ -223,30 +234,26 @@ export function EszettConverter({
       }
 
       parts.push(
-        <span key={`eszett-container-${index}`} className="relative inline-block group">
-          <span
-            className={`cursor-pointer px-1.5 py-1 rounded-md font-bold transition-all duration-200 ${
-              selectedPosition === position
-                ? "bg-pink-200 text-pink-800 ring-2 ring-pink-400 dark:bg-pink-800 dark:text-pink-200 dark:ring-pink-600 scale-105"
-                : "bg-yellow-200 text-yellow-800 hover:bg-yellow-300 hover:scale-105 dark:bg-yellow-800 dark:text-yellow-200 dark:hover:bg-yellow-700"
-            }`}
-            onClick={() => setSelectedPosition(position)}
-            title={`Click to select ß at position ${position + 1}`}
-          >
-            ß
-          </span>
-          <Button
-            size="sm"
-            variant="outline"
-            className="ml-1 h-6 w-6 p-0 text-xs opacity-0 group-hover:opacity-100 transition-opacity hover:bg-pink-100 dark:hover:bg-pink-900 hover:scale-110"
-            onClick={(e) => {
-              e.stopPropagation()
-              replaceAtPosition(position)
-            }}
-            title="Replace this ß with ss"
-          >
-            <Replace className="h-3 w-3" />
-          </Button>
+        <span
+          key={`eszett-container-${index}`}
+          className={`relative inline-block group cursor-pointer px-1.5 py-1 rounded-md font-bold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+            selectedPosition === position
+              ? "bg-pink-200 text-pink-800 ring-2 ring-pink-400 dark:bg-pink-800 dark:text-pink-200 dark:ring-pink-600 scale-105"
+              : "bg-yellow-200 text-yellow-800 hover:bg-yellow-300 hover:scale-105 dark:bg-yellow-800 dark:text-yellow-200 dark:hover:bg-yellow-700"
+          }`}
+          role="button"
+          tabIndex={0}
+          onClick={() => setSelectedPosition(position)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault()
+              setSelectedPosition(position)
+            }
+          }}
+          title={`Click to select ß at position ${position + 1}`}
+          aria-label={`Select eszett character at position ${position + 1}${selectedPosition === position ? " (currently selected)" : ""}`}
+        >
+          ß
         </span>,
       )
 
@@ -311,7 +318,7 @@ export function EszettConverter({
 
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label htmlFor="text-input" className="block text-sm font-medium items-center gap-1">
+              <label htmlFor="text-input" className="block text-sm font-medium flex items-center gap-1">
                 Enter or paste your text:
                 <Tooltip>
                   <TooltipTrigger asChild>

@@ -21,6 +21,7 @@ import {
   HelpCircle,
   GraduationCap,
   Globe,
+  Replace,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -118,9 +119,9 @@ export default function DashboardLayout({
               onNavigate={closeSidebar}
             />
             <NavItem
-              href="/resources"
-              icon={Book}
-              label="Study Resources"
+              href="/eszett-converter"
+              icon={Replace}
+              label="Eszett Converter"
               onNavigate={closeSidebar}
             />
             <NavItem
@@ -190,7 +191,7 @@ export default function DashboardLayout({
             icon={Calculator}
             label="Grade Calculator"
           />
-          <NavItem href="/resources" icon={Book} label="Study Resources" />
+          <NavItem href="/eszett-converter" icon={Replace} label="Eszett Converter" />
           <NavItem
             href="/homework"
             icon={ClipboardList}

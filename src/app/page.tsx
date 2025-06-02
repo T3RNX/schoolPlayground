@@ -10,6 +10,7 @@ import {
   BarChart,
   ChevronRight,
   Globe,
+  Replace,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -26,14 +27,14 @@ export default function Home() {
       link: "/grade-calculator",
     },
     {
-      title: "Study Resources",
-      description: "Summaries, formulas, and helpful materials",
-      icon: Book,
+      title: "Eszett Converter",
+      description: "Easily detect and convert German 'ß' characters to 'ss' for text transformations.",
+      icon: Replace,
       color: "bg-blue-200 dark:bg-blue-900/40",
       iconBg: "bg-blue-500",
       iconColor: "text-white",
       textColor: "text-blue-950 dark:text-white",
-      link: "/resources",
+      link: "/eszett-converter",
     },
     {
       title: "Homework Planner",

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Card } from "@/components/ui/card"
@@ -51,13 +51,16 @@ export function EszettConverter({
     onTextChange?.(text)
   }, [text, onTextChange])
 
-  const addToHistory = (newText: string) => {
-    const newHistory = textHistory.slice(0, historyIndex + 1)
-    newHistory.push(newText)
-    setTextHistory(newHistory)
-    setHistoryIndex(newHistory.length - 1)
-    setText(newText)
-  }
+  const addToHistory = useCallback(
+    (newText: string) => {
+      const newHistory = textHistory.slice(0, historyIndex + 1)
+      newHistory.push(newText)
+      setTextHistory(newHistory)
+      setHistoryIndex(newHistory.length - 1)
+      setText(newText)
+    },
+    [textHistory, historyIndex],
+  )
 
   const undo = () => {
     if (historyIndex > 0) {
@@ -146,7 +149,7 @@ export function EszettConverter({
     }, 1500)
 
     return () => clearTimeout(timeoutId)
-  }, [text, textHistory, historyIndex])
+  }, [text, textHistory, historyIndex, addToHistory])
 
   const copyFormattedText = async () => {
     if (!isClient) return
@@ -273,7 +276,7 @@ export function EszettConverter({
               <div>
                 <h2 className="text-xl font-semibold text-blue-950 dark:text-white">Eszett Converter</h2>
                 <p className="text-sm text-blue-900 dark:text-blue-100">
-                  Detects German "ß" characters and converts them to Swiss "ss" format.
+                  Detects German `&quot;`ß`&quot;` characters and converts them to Swiss `&quot;`ss`&quot;` format.
                 </p>
               </div>
             </div>
@@ -290,6 +293,7 @@ export function EszettConverter({
         <div className="flex flex-col gap-6">
           <div className="flex flex-row flex-wrap items-center gap-2">
             <div className="flex items-center gap-2">
+              <Info className="h-5 w-5 text-muted-foreground" />
               <span className="font-medium">ß (Eszett) to ss Converter</span>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -307,7 +311,7 @@ export function EszettConverter({
 
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label htmlFor="text-input" className="block text-sm font-medium flex items-center gap-1">
+              <label htmlFor="text-input" className="block text-sm font-medium items-center gap-1">
                 Enter or paste your text:
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -414,8 +418,8 @@ export function EszettConverter({
                       <span className="bg-pink-200 dark:bg-pink-800 px-2 py-0.5 rounded text-xs font-medium">Pink</span>
                       <span>= selected for replacement</span>
                     </li>
-                    <li>• Click any ß to select it, then use "Replace Selected" button</li>
-                    <li>• Or use "Replace All" to convert all ß characters at once</li>
+                    <li>• Click any ß to select it, then use &quot;Replace Selected&quot; button</li>
+                    <li>• Or use &quot;Replace All&quot; to convert all ß characters at once</li>
                   </ul>
                 </div>
               )}

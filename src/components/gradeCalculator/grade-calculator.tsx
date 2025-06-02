@@ -435,7 +435,7 @@ export function GradeCalculator() {
             {system === "custom" && (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <Label htmlFor="custom-min" className="mb-2 block flex items-center gap-1">
+                  <Label htmlFor="custom-min" className="mb-2 block items-center gap-1">
                     Minimum Grade
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -456,7 +456,7 @@ export function GradeCalculator() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="custom-max" className="mb-2 block flex items-center gap-1">
+                  <Label htmlFor="custom-max" className="mb-2 block items-center gap-1">
                     Maximum Grade
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -477,7 +477,7 @@ export function GradeCalculator() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="custom-pass" className="mb-2 block flex items-center gap-1">
+                  <Label htmlFor="custom-pass" className="mb-2 block items-center gap-1">
                     Passing Grade
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -502,7 +502,7 @@ export function GradeCalculator() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="rounding-method" className="mb-2 block flex items-center gap-1">
+                <Label htmlFor="rounding-method" className="mb-2 block items-center gap-1">
                   Rounding Method
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -532,7 +532,7 @@ export function GradeCalculator() {
 
               {roundingMethod === "stepRounding" ? (
                 <div>
-                  <Label htmlFor="rounding-step" className="mb-2 block flex items-center gap-1">
+                  <Label htmlFor="rounding-step" className="mb-2 block items-center gap-1">
                     Rounding Step
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -561,7 +561,7 @@ export function GradeCalculator() {
                 </div>
               ) : (
                 <div>
-                  <Label htmlFor="rounding-precision" className="mb-2 block flex items-center gap-1">
+                  <Label htmlFor="rounding-precision" className="mb-2 block items-center gap-1">
                     Decimal Places
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -587,7 +587,7 @@ export function GradeCalculator() {
             </div>
 
             <div>
-              <Label htmlFor="grading-method" className="mb-2 block flex items-center gap-1">
+              <Label htmlFor="grading-method" className="mb-2 flex items-center gap-1">
                 Grading Method
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -617,7 +617,7 @@ export function GradeCalculator() {
 
             {gradingMethod === "custom" && (
               <div>
-                <Label htmlFor="custom-formula" className="mb-2 block flex items-center gap-1">
+                <Label htmlFor="custom-formula" className="mb-2 flex items-center gap-1">
                   Custom Formula
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -756,7 +756,7 @@ export function GradeCalculator() {
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="maximum-points" className="mb-2 block flex items-center gap-1">
+                <Label htmlFor="maximum-points" className="mb-2 block items-center gap-1">
                   Maximum Points
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -779,7 +779,7 @@ export function GradeCalculator() {
                 />
               </div>
               <div>
-                <Label htmlFor="achieved-points" className="mb-2 block flex items-center gap-1">
+                <Label htmlFor="achieved-points" className="mb-2 block items-center gap-1">
                   Achieved Points
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -835,7 +835,7 @@ export function GradeCalculator() {
               {gradeEntries.map((entry, index) => (
                 <div key={entry.id} className="flex items-end gap-2 p-3 bg-muted/20 rounded-md">
                   <div className="flex-1">
-                    <Label htmlFor={`grade-${entry.id}`} className="mb-2 block flex items-center gap-1">
+                    <Label htmlFor={`grade-${entry.id}`} className="mb-2 block items-center gap-1">
                       Grade {index + 1}
                       {index === 0 && (
                         <Tooltip>
@@ -861,7 +861,7 @@ export function GradeCalculator() {
                     />
                   </div>
                   <div className="w-24">
-                    <Label htmlFor={`weight-${entry.id}`} className="mb-2 block flex items-center gap-1">
+                    <Label htmlFor={`weight-${entry.id}`} className="mb-2 block items-center gap-1">
                       Weight
                       {index === 0 && (
                         <Tooltip>

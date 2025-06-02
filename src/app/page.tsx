@@ -1,7 +1,6 @@
-import Link from "next/link";
+import Link from "next/link"
 import {
   Calculator,
-  Book,
   ClipboardList,
   Brain,
   Calendar,
@@ -10,8 +9,9 @@ import {
   BarChart,
   ChevronRight,
   Globe,
-} from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+  Replace,
+} from "lucide-react"
+import { Card, CardContent } from "@/components/ui/card"
 
 export default function Home() {
   const tools = [
@@ -26,14 +26,14 @@ export default function Home() {
       link: "/grade-calculator",
     },
     {
-      title: "Study Resources",
-      description: "Summaries, formulas, and helpful materials",
-      icon: Book,
+      title: "Eszett Converter",
+      description: "Easily detect and convert German 'ß' characters to 'ss' for text transformations.",
+      icon: Replace,
       color: "bg-blue-200 dark:bg-blue-900/40",
       iconBg: "bg-blue-500",
       iconColor: "text-white",
       textColor: "text-blue-950 dark:text-white",
-      link: "/resources",
+      link: "/eszett-converter",
     },
     {
       title: "Homework Planner",
@@ -105,37 +105,31 @@ export default function Home() {
       textColor: "text-indigo-950 dark:text-white",
       link: "/sites",
     },
-  ];
+  ]
 
   return (
     <>
       <div className="mb-4 px-1">
-        <h1 className="text-2xl font-bold tracking-tight">
-          Welcome to SchoolPlayground
-        </h1>
+        <h1 className="text-2xl font-bold tracking-tight">Welcome to SchoolPlayground</h1>
         <p className="text-muted-foreground">
-          Your all-in-one educational toolkit for better studying and academic
-          success
+          Your all-in-one educational toolkit for better studying and academic success
         </p>
       </div>
 
-      <div className="mb-4 rounded-lg border-0 bg-card p-4 shadow-sm">
+      <div className="mb-4 rounded-lg border-2 border-border/60 dark:border-border/80 bg-card p-4 shadow-lg dark:shadow-xl">
         <h2 className="text-lg font-semibold mb-2">Getting Started</h2>
         <p className="text-muted-foreground mb-3 text-sm">
-          New to SchoolPlayground? Here&#39;s how to make the most of our
-          platform:
+          New to SchoolPlayground? Here&#39;s how to make the most of our platform:
         </p>
         <div className="grid gap-3 md:grid-cols-3">
-          <div className="flex flex-col items-center text-center p-3 rounded-lg bg-muted/50">
+          <div className="flex flex-col items-center text-center p-3 rounded-lg bg-muted/50 border-2 border-muted-foreground/20 dark:border-muted-foreground/30">
             <div className="rounded-full bg-primary/10 p-2 mb-2">
               <Calculator className="h-5 w-5 text-primary" />
             </div>
             <h3 className="font-medium mb-1 text-sm">Calculate Your Grades</h3>
-            <p className="text-xs text-muted-foreground">
-              Use our grade calculator to track your academic performance
-            </p>
+            <p className="text-xs text-muted-foreground">Use our grade calculator to track your academic performance</p>
           </div>
-          <div className="flex flex-col items-center text-center p-3 rounded-lg bg-muted/50">
+          <div className="flex flex-col items-center text-center p-3 rounded-lg bg-muted/50 border-2 border-muted-foreground/20 dark:border-muted-foreground/30">
             <div className="rounded-full bg-primary/10 p-2 mb-2">
               <ClipboardList className="h-5 w-5 text-primary" />
             </div>
@@ -144,23 +138,19 @@ export default function Home() {
               Stay organized with our homework planner and never miss a deadline
             </p>
           </div>
-          <div className="flex flex-col items-center text-center p-3 rounded-lg bg-muted/50">
+          <div className="flex flex-col items-center text-center p-3 rounded-lg bg-muted/50 border-2 border-muted-foreground/20 dark:border-muted-foreground/30">
             <div className="rounded-full bg-primary/10 p-2 mb-2">
               <Users className="h-5 w-5 text-primary" />
             </div>
             <h3 className="font-medium mb-1 text-sm">Join the Community</h3>
-            <p className="text-xs text-muted-foreground">
-              Connect with other students and share helpful study tips
-            </p>
+            <p className="text-xs text-muted-foreground">Connect with other students and share helpful study tips</p>
           </div>
         </div>
       </div>
 
       <div className="mb-4 px-1">
         <h1 className="text-2xl font-bold tracking-tight">Tools & Resources</h1>
-        <p className="text-muted-foreground">
-          Explore our collection of educational tools to help you succeed
-        </p>
+        <p className="text-muted-foreground">Explore our collection of educational tools to help you succeed</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
@@ -170,23 +160,17 @@ export default function Home() {
             href={tool.link}
             className="block h-full transition-all duration-200 focus:outline-none rounded-lg"
           >
-            <Card className="h-full overflow-hidden transition-all duration-200 hover:shadow-lg hover:translate-y-[-2px] border-0 dark:border-0 hover:border-0 dark:hover:border-0">
+            <Card className="h-full overflow-hidden transition-all duration-200 hover:shadow-lg hover:translate-y-[-2px] border-2 border-border/60 dark:border-border/80 hover:border-primary/50 dark:hover:border-primary/60">
               <CardContent className="p-0 h-full">
                 <div className="flex flex-col h-full">
                   <div className={`${tool.color} p-4 flex items-center gap-3`}>
-                    <div
-                      className={`rounded-full p-2 ${tool.iconBg} ${tool.iconColor}`}
-                    >
+                    <div className={`rounded-full p-2 ${tool.iconBg} ${tool.iconColor}`}>
                       <tool.icon className="h-5 w-5" />
                     </div>
-                    <h3 className={`font-medium text-base ${tool.textColor}`}>
-                      {tool.title}
-                    </h3>
+                    <h3 className={`font-medium text-base ${tool.textColor}`}>{tool.title}</h3>
                   </div>
-                  <div className="p-4 flex-1 flex flex-col justify-between bg-card dark:bg-zinc-800/50">
-                    <p className="text-sm text-muted-foreground">
-                      {tool.description}
-                    </p>
+                  <div className="p-4 flex-1 flex flex-col justify-between bg-card dark:bg-zinc-800/50 border-t border-border/40 dark:border-border/60">
+                    <p className="text-sm text-muted-foreground">{tool.description}</p>
                     <div className="flex items-center justify-end mt-4 text-sm font-medium text-foreground">
                       <span>Open Tool</span>
                       <ChevronRight className="h-4 w-4 ml-1" />
@@ -199,5 +183,5 @@ export default function Home() {
         ))}
       </div>
     </>
-  );
+  )
 }

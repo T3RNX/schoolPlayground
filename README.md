@@ -5,7 +5,7 @@ Welcome to **SchoolPlayground**, the ultimate platform designed to make school l
 ## What We Offer:
 
 - 📊 **Grade Calculator** – Easily calculate your grades and see what you need to pass.
-- 📖 **Study Resources** – Summaries, formulas, and helpful materials for different subjects.
+- 📖 **Eszett Converter** – Easily detect and convert German "ß" characters to "ss" for Swiss compatibility or other text transformations.
 - 📝 **Homework Planner** – Keep track of assignments and deadlines.
 - 💡 **Exam Preparation** – Flashcards, practice tests, and learning tips.
 - 📆 **Timetable Organizer** – Plan your school schedule efficiently.

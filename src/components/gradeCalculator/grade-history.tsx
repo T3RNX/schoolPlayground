@@ -1,17 +1,17 @@
-"use client";
+"use client"
 
-import { useState } from "react";
-import { Clock } from "lucide-react";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { useState } from "react"
+import { Clock } from "lucide-react"
+import { Card } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
 
 type HistoryEntry = {
-  id: string;
-  date: Date;
-  system: string;
-  grade: number;
-  details: string;
-};
+  id: string
+  date: Date
+  system: string
+  grade: number
+  details: string
+}
 
 export function GradeHistory() {
   const [history, setHistory] = useState<HistoryEntry[]>([
@@ -36,20 +36,18 @@ export function GradeHistory() {
       grade: 3.5,
       details: "Chemistry Exam: 18/30 points",
     },
-  ]);
+  ])
 
   const clearHistory = () => {
-    setHistory([]);
-  };
+    setHistory([])
+  }
 
   const getGradeColor = (grade: number) => {
-    return grade >= 4
-      ? "text-green-500 dark:text-green-400"
-      : "text-red-500 dark:text-red-400";
-  };
+    return grade >= 4 ? "text-green-500 dark:text-green-400" : "text-red-500 dark:text-red-400"
+  }
 
   return (
-    <Card className="p-6 border-0 shadow-sm">
+    <Card className="p-6 border-2 border-border/60 dark:border-border/80 shadow-lg dark:shadow-xl">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <div className="rounded-full p-2 bg-blue-500 text-white">
@@ -65,14 +63,14 @@ export function GradeHistory() {
       </div>
 
       {history.length === 0 ? (
-        <div className="text-center py-8 text-muted-foreground">
+        <div className="text-center py-8 text-muted-foreground border border-border/30 dark:border-border/50 rounded-lg bg-muted/20">
           <p>No grade calculations yet.</p>
           <p className="text-sm">Your calculation history will appear here.</p>
         </div>
       ) : (
         <div className="space-y-3">
           {history.map((entry) => (
-            <div key={entry.id} className="p-3 bg-muted/30 rounded-lg">
+            <div key={entry.id} className="p-3 bg-muted/30 border border-border/40 dark:border-border/60 rounded-lg">
               <div className="flex justify-between items-start">
                 <div>
                   <p className="font-medium">{entry.details}</p>
@@ -80,16 +78,12 @@ export function GradeHistory() {
                     {entry.date.toLocaleDateString()} • {entry.system}
                   </p>
                 </div>
-                <p
-                  className={`text-xl font-bold ${getGradeColor(entry.grade)}`}
-                >
-                  {entry.grade}
-                </p>
+                <p className={`text-xl font-bold ${getGradeColor(entry.grade)}`}>{entry.grade}</p>
               </div>
             </div>
           ))}
         </div>
       )}
     </Card>
-  );
+  )
 }

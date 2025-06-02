@@ -177,8 +177,8 @@ export default function DashboardLayout({
       </div>
 
       {/* Desktop sidebar */}
-      <aside className="hidden md:block w-64 border-r bg-card sticky top-0 h-screen overflow-y-auto">
-        <div className="flex h-16 items-center border-b px-4">
+      <aside className="hidden md:block w-64 shadow-sm bg-card sticky top-0 h-screen overflow-y-auto">
+        <div className="flex h-16 items-center  px-4">
           <div className="flex items-center gap-2 font-semibold">
             <GraduationCap className="h-6 w-6 text-primary" />
             <span className="text-lg">SchoolPlayground</span>
@@ -191,7 +191,11 @@ export default function DashboardLayout({
             icon={Calculator}
             label="Grade Calculator"
           />
-          <NavItem href="/eszett-converter" icon={Replace} label="Eszett Converter" />
+          <NavItem
+            href="/eszett-converter"
+            icon={Replace}
+            label="Eszett Converter"
+          />
           <NavItem
             href="/homework"
             icon={ClipboardList}
@@ -215,7 +219,7 @@ export default function DashboardLayout({
       {/* Main content */}
       <div className="flex-1 flex flex-col">
         {/* Header with higher z-index to prevent overlap issues */}
-        <header className="sticky top-0 z-40 flex h-16 items-center gap-4 border-b bg-background/95 backdrop-blur-sm px-4 shadow-sm">
+        <header className="sticky top-0 z-40 flex h-16 items-center gap-4 bg-background px-4 border-b border-border backdrop-blur-sm shadow-none">
           <Button
             variant="ghost"
             size="icon"
@@ -277,11 +281,8 @@ export default function DashboardLayout({
             </DropdownMenu>
           </div>
         </header>
-
         {/* Page content */}
-        <main className="flex-1 bg-zinc-100 dark:bg-zinc-900 p-4">
-          {children}
-        </main>
+        <main className="flex-1 bg-surface p-4">{children}</main>
       </div>
     </div>
   );

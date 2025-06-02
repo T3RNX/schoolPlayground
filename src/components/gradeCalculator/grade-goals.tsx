@@ -1,12 +1,12 @@
-"use client";
+"use client"
 
-import { useState, useEffect } from "react";
-import { Target, PartyPopper, Check } from "lucide-react";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Progress } from "@/components/ui/progress";
+import { useState, useEffect } from "react"
+import { Target, PartyPopper, Check } from "lucide-react"
+import { Card } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Progress } from "@/components/ui/progress"
 
 const gradingSystems = {
   switzerland: {
@@ -33,60 +33,53 @@ const gradingSystems = {
     step: 1,
     description: "Higher is better (100 is best)",
   },
-};
+}
 
 type ConfettiParticle = {
-  id: number;
-  x: number;
-  y: number;
-  color: string;
-  size: number;
-  speed: number;
-  angle: number;
-};
+  id: number
+  x: number
+  y: number
+  color: string
+  size: number
+  speed: number
+  angle: number
+}
 
 export function GradeGoals() {
-  const [system, setSystem] = useState("switzerland");
-  const [currentGrade, setCurrentGrade] = useState("4.2");
-  const [targetGrade, setTargetGrade] = useState("5.0");
-  const [progress, setProgress] = useState(70);
-  const [showCelebration, setShowCelebration] = useState(false);
-  const [confetti, setConfetti] = useState<ConfettiParticle[]>([]);
+  const [system, setSystem] = useState("switzerland")
+  const [currentGrade, setCurrentGrade] = useState("4.2")
+  const [targetGrade, setTargetGrade] = useState("5.0")
+  const [progress, setProgress] = useState(70)
+  const [showCelebration, setShowCelebration] = useState(false)
+  const [confetti, setConfetti] = useState<ConfettiParticle[]>([])
 
-  const selectedSystem = gradingSystems[system as keyof typeof gradingSystems];
+  const selectedSystem = gradingSystems[system as keyof typeof gradingSystems]
 
   const triggerCelebration = () => {
-    setShowCelebration(false);
+    setShowCelebration(false)
 
-    setConfetti([]);
+    setConfetti([])
 
     setTimeout(() => {
-      setShowCelebration(true);
-      generateConfetti();
-    }, 10);
-  };
+      setShowCelebration(true)
+      generateConfetti()
+    }, 10)
+  }
 
   useEffect(() => {
     if (showCelebration) {
       const timer = setTimeout(() => {
-        setConfetti([]);
-      }, 3000);
-      return () => clearTimeout(timer);
+        setConfetti([])
+      }, 3000)
+      return () => clearTimeout(timer)
     }
-  }, [showCelebration]);
+  }, [showCelebration])
 
   const generateConfetti = () => {
-    const confettiCount = 150;
-    const colors = [
-      "#ff0000",
-      "#00ff00",
-      "#0000ff",
-      "#ffff00",
-      "#ff00ff",
-      "#00ffff",
-    ];
+    const confettiCount = 150
+    const colors = ["#ff0000", "#00ff00", "#0000ff", "#ffff00", "#ff00ff", "#00ffff"]
 
-    const newConfetti = [];
+    const newConfetti = []
     for (let i = 0; i < confettiCount; i++) {
       newConfetti.push({
         id: i,
@@ -96,62 +89,61 @@ export function GradeGoals() {
         size: Math.random() * 8 + 2,
         speed: Math.random() * 3 + 1,
         angle: Math.random() * 90 - 45,
-      });
+      })
     }
-    setConfetti(newConfetti);
-  };
+    setConfetti(newConfetti)
+  }
 
   const calculateProgress = () => {
-    const current = Number.parseFloat(currentGrade);
-    const target = Number.parseFloat(targetGrade);
+    const current = Number.parseFloat(currentGrade)
+    const target = Number.parseFloat(targetGrade)
 
-    if (isNaN(current) || isNaN(target)) return;
+    if (isNaN(current) || isNaN(target)) return
 
-    const goalReached =
-      system === "germany" ? current <= target : current >= target;
+    const goalReached = system === "germany" ? current <= target : current >= target
 
     if (goalReached) {
-      setProgress(100);
-      triggerCelebration();
-      return;
+      setProgress(100)
+      triggerCelebration()
+      return
     }
 
-    const { min, max } = selectedSystem;
+    const { min, max } = selectedSystem
 
     if (system === "germany") {
-      const range = target - max;
-      const position = current - max;
-      const newProgress = Math.min(100, Math.max(0, (position / range) * 100));
-      setProgress(Math.round(newProgress));
-      return;
+      const range = target - max
+      const position = current - max
+      const newProgress = Math.min(100, Math.max(0, (position / range) * 100))
+      setProgress(Math.round(newProgress))
+      return
     }
 
-    const range = target - min;
-    const position = current - min;
-    const newProgress = Math.min(100, Math.max(0, (position / range) * 100));
-    setProgress(Math.round(newProgress));
-  };
+    const range = target - min
+    const position = current - min
+    const newProgress = Math.min(100, Math.max(0, (position / range) * 100))
+    setProgress(Math.round(newProgress))
+  }
 
   const handleSystemChange = (newSystem: string) => {
-    setSystem(newSystem);
+    setSystem(newSystem)
 
     if (newSystem === "germany") {
-      setCurrentGrade("3.5");
-      setTargetGrade("2.0");
+      setCurrentGrade("3.5")
+      setTargetGrade("2.0")
     } else if (newSystem === "usa") {
-      setCurrentGrade("70");
-      setTargetGrade("85");
+      setCurrentGrade("70")
+      setTargetGrade("85")
     } else {
-      setCurrentGrade("4.2");
-      setTargetGrade("5.0");
+      setCurrentGrade("4.2")
+      setTargetGrade("5.0")
     }
 
-    setProgress(70);
-    setShowCelebration(false);
-  };
+    setProgress(70)
+    setShowCelebration(false)
+  }
 
   return (
-    <Card className="p-6 border-0 shadow-sm relative overflow-hidden">
+    <Card className="p-6 border-2 border-border/60 dark:border-border/80 shadow-lg dark:shadow-xl relative overflow-hidden">
       {showCelebration && (
         <div className="absolute inset-0 pointer-events-none">
           {confetti.map((particle) => (
@@ -187,15 +179,13 @@ export function GradeGoals() {
           id="grading-system"
           value={system}
           onChange={(e) => handleSystemChange(e.target.value)}
-          className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          className="w-full h-10 rounded-md border border-input bg-muted/70 dark:bg-muted/80 px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         >
           <option value="switzerland">Switzerland (1-6)</option>
           <option value="germany">Germany (1-6)</option>
           <option value="usa">USA (0-100)</option>
         </select>
-        <p className="text-xs text-muted-foreground mt-1">
-          {selectedSystem.description}
-        </p>
+        <p className="text-xs text-muted-foreground mt-1">{selectedSystem.description}</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
@@ -211,10 +201,11 @@ export function GradeGoals() {
             step={selectedSystem.step}
             value={currentGrade}
             onChange={(e) => {
-              setCurrentGrade(e.target.value);
-              setShowCelebration(false);
+              setCurrentGrade(e.target.value)
+              setShowCelebration(false)
             }}
             placeholder={`Enter grade (${selectedSystem.min}-${selectedSystem.max})`}
+            className="bg-muted/70 dark:bg-muted/80"
           />
         </div>
         <div>
@@ -229,18 +220,16 @@ export function GradeGoals() {
             step={selectedSystem.step}
             value={targetGrade}
             onChange={(e) => {
-              setTargetGrade(e.target.value);
-              setShowCelebration(false);
+              setTargetGrade(e.target.value)
+              setShowCelebration(false)
             }}
             placeholder={`Enter grade (${selectedSystem.min}-${selectedSystem.max})`}
+            className="bg-muted/70 dark:bg-muted/80"
           />
         </div>
       </div>
 
-      <Button
-        onClick={calculateProgress}
-        className="w-full mb-6 bg-green-500 hover:bg-green-600 text-white"
-      >
+      <Button onClick={calculateProgress} className="w-full mb-6 bg-green-500 hover:bg-green-600 text-white">
         Calculate Progress
       </Button>
 
@@ -249,50 +238,39 @@ export function GradeGoals() {
           <span>Current: {currentGrade}</span>
           <span>Target: {targetGrade}</span>
         </div>
-        <Progress
-          value={progress}
-          className={`h-2 ${progress === 100 ? "bg-success" : ""}`}
-        />
+        <Progress value={progress} className={`h-2 ${progress === 100 ? "bg-success" : ""}`} />
 
         {progress === 100 ? (
           <div className="text-center mt-2 animate-bounce">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200">
               <Check className="h-4 w-4" />
-              <span className="font-medium">
-                Goal achieved! Congratulations!
-              </span>
+              <span className="font-medium">Goal achieved! Congratulations!</span>
             </div>
           </div>
         ) : (
           <p className="text-center text-sm text-muted-foreground">
             You&apos;re {progress}% of the way to your goal!
-            {system === "germany"
-              ? " (Lower grades are better in Germany)"
-              : ""}
+            {system === "germany" ? " (Lower grades are better in Germany)" : ""}
           </p>
         )}
       </div>
 
       {progress === 100 ? (
-        <div className="mt-6 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-900">
+        <div className="mt-6 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border-2 border-green-200 dark:border-green-600">
           <h4 className="font-medium mb-2 flex items-center gap-2">
             <PartyPopper className="h-4 w-4" />
             You&apos;ve reached your target!
           </h4>
           <p className="text-sm text-muted-foreground">
-            Great job achieving your grade goal! Consider setting a new, more
-            challenging target to continue improving.
+            Great job achieving your grade goal! Consider setting a new, more challenging target to continue improving.
           </p>
-          <Button
-            onClick={triggerCelebration}
-            className="mt-4 w-full bg-green-600 hover:bg-green-700 text-white"
-          >
+          <Button onClick={triggerCelebration} className="mt-4 w-full bg-green-600 hover:bg-green-700 text-white">
             <PartyPopper className="h-4 w-4 mr-2" />
             Celebrate Again!
           </Button>
         </div>
       ) : (
-        <div className="mt-6 p-4 bg-muted/30 rounded-lg">
+        <div className="mt-6 p-4 bg-muted/30 border-2 border-muted-foreground/20 dark:border-muted-foreground/30 rounded-lg">
           <h4 className="font-medium mb-2">Tips to improve your grade:</h4>
           <ul className="text-sm text-muted-foreground space-y-1 list-disc pl-5">
             <li>Create a regular study schedule</li>
@@ -303,5 +281,5 @@ export function GradeGoals() {
         </div>
       )}
     </Card>
-  );
+  )
 }

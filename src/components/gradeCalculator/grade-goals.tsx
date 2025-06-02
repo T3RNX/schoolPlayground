@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Progress } from "@/components/ui/progress"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 const gradingSystems = {
   switzerland: {
@@ -52,6 +53,7 @@ export function GradeGoals() {
   const [progress, setProgress] = useState(70)
   const [showCelebration, setShowCelebration] = useState(false)
   const [confetti, setConfetti] = useState<ConfettiParticle[]>([])
+  const [errors, setErrors] = useState<{ currentGrade?: string; targetGrade?: string }>({})
 
   const selectedSystem = gradingSystems[system as keyof typeof gradingSystems]
 
@@ -94,7 +96,26 @@ export function GradeGoals() {
     setConfetti(newConfetti)
   }
 
+  const validateInputs = () => {
+    const newErrors: { currentGrade?: string; targetGrade?: string } = {}
+    const current = Number.parseFloat(currentGrade)
+    const target = Number.parseFloat(targetGrade)
+
+    if (isNaN(current) || current < selectedSystem.min || current > selectedSystem.max) {
+      newErrors.currentGrade = `Please enter a valid grade between ${selectedSystem.min} and ${selectedSystem.max}`
+    }
+
+    if (isNaN(target) || target < selectedSystem.min || target > selectedSystem.max) {
+      newErrors.targetGrade = `Please enter a valid grade between ${selectedSystem.min} and ${selectedSystem.max}`
+    }
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
+
   const calculateProgress = () => {
+    if (!validateInputs()) return
+
     const current = Number.parseFloat(currentGrade)
     const target = Number.parseFloat(targetGrade)
 
@@ -143,143 +164,172 @@ export function GradeGoals() {
   }
 
   return (
-    <Card className="p-6 border-2 border-border/60 dark:border-border/80 shadow-lg dark:shadow-xl relative overflow-hidden">
-      {showCelebration && (
-        <div className="absolute inset-0 pointer-events-none">
-          {confetti.map((particle) => (
-            <div
-              key={particle.id}
-              className="absolute animate-fall"
-              style={{
-                left: `${particle.x}%`,
-                top: `${particle.y}%`,
-                width: `${particle.size}px`,
-                height: `${particle.size}px`,
-                backgroundColor: particle.color,
-                transform: `rotate(${particle.angle}deg)`,
-                animation: `fall ${particle.speed}s linear forwards`,
-              }}
-            />
-          ))}
+    <TooltipProvider>
+      <Card className="p-6 border-2 border-border/60 dark:border-border/80 shadow-lg dark:shadow-xl relative overflow-hidden">
+        {showCelebration && (
+          <div className="absolute inset-0 pointer-events-none">
+            {confetti.map((particle) => (
+              <div
+                key={particle.id}
+                className="absolute animate-fall"
+                style={{
+                  left: `${particle.x}%`,
+                  top: `${particle.y}%`,
+                  width: `${particle.size}px`,
+                  height: `${particle.size}px`,
+                  backgroundColor: particle.color,
+                  transform: `rotate(${particle.angle}deg)`,
+                  animation: `fall ${particle.speed}s linear forwards`,
+                }}
+              />
+            ))}
+          </div>
+        )}
+
+        <div className="flex items-center gap-3 mb-6">
+          <div className="rounded-full p-2 bg-green-500 text-white">
+            <Target className="h-5 w-5" />
+          </div>
+          <div>
+            <h3 className="text-lg font-medium">Grade Goals</h3>
+            <p className="text-sm text-muted-foreground">Set targets and track your academic progress</p>
+          </div>
         </div>
-      )}
 
-      <div className="flex items-center gap-3 mb-6">
-        <div className="rounded-full p-2 bg-green-500 text-white">
-          <Target className="h-5 w-5" />
-        </div>
-        <h3 className="text-lg font-medium">Grade Goals</h3>
-      </div>
-
-      <div className="mb-6">
-        <Label htmlFor="grading-system" className="mb-2 block">
-          Grading System
-        </Label>
-        <select
-          id="grading-system"
-          value={system}
-          onChange={(e) => handleSystemChange(e.target.value)}
-          className="w-full h-10 rounded-md border border-input bg-muted/70 dark:bg-muted/80 px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-        >
-          <option value="switzerland">Switzerland (1-6)</option>
-          <option value="germany">Germany (1-6)</option>
-          <option value="usa">USA (0-100)</option>
-        </select>
-        <p className="text-xs text-muted-foreground mt-1">{selectedSystem.description}</p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-        <div>
-          <Label htmlFor="current-grade" className="mb-2 block">
-            Current Grade
+        <div className="mb-6">
+          <Label htmlFor="grading-system" className="mb-2 block">
+            Grading System
           </Label>
-          <Input
-            id="current-grade"
-            type="number"
-            min={selectedSystem.min}
-            max={selectedSystem.max}
-            step={selectedSystem.step}
-            value={currentGrade}
-            onChange={(e) => {
-              setCurrentGrade(e.target.value)
-              setShowCelebration(false)
-            }}
-            placeholder={`Enter grade (${selectedSystem.min}-${selectedSystem.max})`}
-            className="bg-muted/70 dark:bg-muted/80"
-          />
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger>
+                <select
+                  id="grading-system"
+                  value={system}
+                  onChange={(e) => handleSystemChange(e.target.value)}
+                  className="w-full h-10 rounded-md border border-input bg-muted/70 dark:bg-muted/80 px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                >
+                  <option value="switzerland">Switzerland (1-6)</option>
+                  <option value="germany">Germany (1-6)</option>
+                  <option value="usa">USA (0-100)</option>
+                </select>
+              </TooltipTrigger>
+              <TooltipContent>Select the grading system used in your school or institution.</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          <p className="text-xs text-muted-foreground mt-1">{selectedSystem.description}</p>
         </div>
-        <div>
-          <Label htmlFor="target-grade" className="mb-2 block">
-            Target Grade
-          </Label>
-          <Input
-            id="target-grade"
-            type="number"
-            min={selectedSystem.min}
-            max={selectedSystem.max}
-            step={selectedSystem.step}
-            value={targetGrade}
-            onChange={(e) => {
-              setTargetGrade(e.target.value)
-              setShowCelebration(false)
-            }}
-            placeholder={`Enter grade (${selectedSystem.min}-${selectedSystem.max})`}
-            className="bg-muted/70 dark:bg-muted/80"
-          />
-        </div>
-      </div>
 
-      <Button onClick={calculateProgress} className="w-full mb-6 bg-green-500 hover:bg-green-600 text-white">
-        Calculate Progress
-      </Button>
-
-      <div className="space-y-2">
-        <div className="flex justify-between text-sm">
-          <span>Current: {currentGrade}</span>
-          <span>Target: {targetGrade}</span>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <div>
+            <Label htmlFor="current-grade" className="mb-2 block">
+              Current Grade
+            </Label>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Input
+                    id="current-grade"
+                    type="number"
+                    min={selectedSystem.min}
+                    max={selectedSystem.max}
+                    step={selectedSystem.step}
+                    value={currentGrade}
+                    onChange={(e) => {
+                      setCurrentGrade(e.target.value)
+                      setShowCelebration(false)
+                    }}
+                    placeholder={`Enter grade (${selectedSystem.min}-${selectedSystem.max})`}
+                    className="bg-muted/70 dark:bg-muted/80"
+                  />
+                </TooltipTrigger>
+                <TooltipContent>Enter your current grade in the selected grading system.</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            {errors.currentGrade && <p className="text-red-500 text-sm mt-1">{errors.currentGrade}</p>}
+          </div>
+          <div>
+            <Label htmlFor="target-grade" className="mb-2 block">
+              Target Grade
+            </Label>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Input
+                    id="target-grade"
+                    type="number"
+                    min={selectedSystem.min}
+                    max={selectedSystem.max}
+                    step={selectedSystem.step}
+                    value={targetGrade}
+                    onChange={(e) => {
+                      setTargetGrade(e.target.value)
+                      setShowCelebration(false)
+                    }}
+                    placeholder={`Enter grade (${selectedSystem.min}-${selectedSystem.max})`}
+                    className="bg-muted/70 dark:bg-muted/80"
+                  />
+                </TooltipTrigger>
+                <TooltipContent>Enter the grade you are aiming to achieve.</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            {errors.targetGrade && <p className="text-red-500 text-sm mt-1">{errors.targetGrade}</p>}
+          </div>
         </div>
-        <Progress value={progress} className={`h-2 ${progress === 100 ? "bg-success" : ""}`} />
+
+        <Button onClick={calculateProgress} className="w-full mb-6 bg-green-500 hover:bg-green-600 text-white">
+          Calculate Progress
+        </Button>
+
+        <div className="space-y-2">
+          <div className="flex justify-between text-sm">
+            <span>Current: {currentGrade}</span>
+            <span>Target: {targetGrade}</span>
+          </div>
+          <Progress value={progress} className={`h-2 ${progress === 100 ? "bg-success" : ""}`} />
+
+          {progress === 100 ? (
+            <div className="text-center mt-2 animate-bounce">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200">
+                <Check className="h-4 w-4" />
+                <span className="font-medium">Goal achieved! Congratulations!</span>
+              </div>
+            </div>
+          ) : (
+            <p className="text-center text-sm text-muted-foreground">
+              You&apos;re {progress}% of the way to your goal!
+              {system === "germany" ? " (Lower grades are better in Germany)" : ""}
+            </p>
+          )}
+        </div>
 
         {progress === 100 ? (
-          <div className="text-center mt-2 animate-bounce">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200">
-              <Check className="h-4 w-4" />
-              <span className="font-medium">Goal achieved! Congratulations!</span>
-            </div>
+          <div className="mt-6 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border-2 border-green-200 dark:border-green-600">
+            <h4 className="font-medium mb-2 flex items-center gap-2">
+              <PartyPopper className="h-4 w-4" />
+              You&apos;ve reached your target!
+            </h4>
+            <p className="text-sm text-muted-foreground">
+              Great job achieving your grade goal! Consider setting a new, more challenging target to continue
+              improving.
+            </p>
+            <Button onClick={triggerCelebration} className="mt-4 w-full bg-green-600 hover:bg-green-700 text-white">
+              <PartyPopper className="h-4 w-4 mr-2" />
+              Celebrate Again!
+            </Button>
           </div>
         ) : (
-          <p className="text-center text-sm text-muted-foreground">
-            You&apos;re {progress}% of the way to your goal!
-            {system === "germany" ? " (Lower grades are better in Germany)" : ""}
-          </p>
+          <div className="mt-6 p-4 bg-muted/30 border-2 border-muted-foreground/20 dark:border-muted-foreground/30 rounded-lg">
+            <h4 className="font-medium mb-2">Tips to improve your grade:</h4>
+            <ul className="text-sm text-muted-foreground space-y-1 list-disc pl-5">
+              <li>Create a regular study schedule</li>
+              <li>Form a study group with classmates</li>
+              <li>Ask your teacher for additional resources</li>
+              <li>Practice with past exams and quizzes</li>
+            </ul>
+          </div>
         )}
-      </div>
-
-      {progress === 100 ? (
-        <div className="mt-6 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border-2 border-green-200 dark:border-green-600">
-          <h4 className="font-medium mb-2 flex items-center gap-2">
-            <PartyPopper className="h-4 w-4" />
-            You&apos;ve reached your target!
-          </h4>
-          <p className="text-sm text-muted-foreground">
-            Great job achieving your grade goal! Consider setting a new, more challenging target to continue improving.
-          </p>
-          <Button onClick={triggerCelebration} className="mt-4 w-full bg-green-600 hover:bg-green-700 text-white">
-            <PartyPopper className="h-4 w-4 mr-2" />
-            Celebrate Again!
-          </Button>
-        </div>
-      ) : (
-        <div className="mt-6 p-4 bg-muted/30 border-2 border-muted-foreground/20 dark:border-muted-foreground/30 rounded-lg">
-          <h4 className="font-medium mb-2">Tips to improve your grade:</h4>
-          <ul className="text-sm text-muted-foreground space-y-1 list-disc pl-5">
-            <li>Create a regular study schedule</li>
-            <li>Form a study group with classmates</li>
-            <li>Ask your teacher for additional resources</li>
-            <li>Practice with past exams and quizzes</li>
-          </ul>
-        </div>
-      )}
-    </Card>
+      </Card>
+    </TooltipProvider>
   )
 }

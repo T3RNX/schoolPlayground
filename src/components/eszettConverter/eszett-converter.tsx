@@ -283,7 +283,7 @@ export function EszettConverter({
               <div>
                 <h2 className="text-xl font-semibold text-blue-950 dark:text-white">Eszett Converter</h2>
                 <p className="text-sm text-blue-900 dark:text-blue-100">
-                  Detects German `&quot;`ß`&quot;` characters and converts them to Swiss `&quot;`ss`&quot;` format.
+                  Detects German &#34;ß&#34; characters and converts them to Swiss &#34;ss&#34; format.
                 </p>
               </div>
             </div>

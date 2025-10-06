@@ -10,6 +10,8 @@ import {
   ChevronRight,
   Globe,
   Replace,
+  Wand2,
+  Focus,
 } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 
@@ -34,6 +36,26 @@ export default function Home() {
       iconColor: "text-white",
       textColor: "text-blue-950 dark:text-white",
       link: "/eszett-converter",
+    },
+    {
+      title: "Focus Timer",
+      description: "Stay focused and manage your time effectively with this Pomodoro timer.",
+      icon: Focus,
+      color: "bg-blue-200 dark:bg-blue-900/40",
+      iconBg: "bg-blue-500",
+      iconColor: "text-white",
+      textColor: "text-blue-950 dark:text-white",
+      link: "/focus-timer",
+    },
+    {
+      title: "Grammar Checker",
+      description: "Check your writing for grammar, spelling, punctuation, and style issues",
+      icon: Wand2,
+      color: "bg-purple-200 dark:bg-purple-900/40",
+      iconBg: "bg-purple-500",
+      iconColor: "text-white",
+      textColor: "text-purple-950 dark:text-white",
+      link: "/grammar-checker",
     },
     {
       title: "Homework Planner",

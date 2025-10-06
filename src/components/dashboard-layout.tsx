@@ -21,6 +21,8 @@ import {
   GraduationCap,
   Globe,
   Replace,
+  BookCheck,
+  Focus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -124,6 +126,18 @@ export default function DashboardLayout({
               onNavigate={closeSidebar}
             />
             <NavItem
+              href="/focus-timer"
+              icon={Focus}
+              label="Focus Timer"
+              onNavigate={closeSidebar}
+            />
+            <NavItem
+              href="/grammar-checker"
+              icon={BookCheck}
+              label="Grammar Checker"
+              onNavigate={closeSidebar}
+            />
+            <NavItem
               href="/homework"
               icon={ClipboardList}
               label="Homework Planner"
@@ -194,6 +208,12 @@ export default function DashboardLayout({
             href="/eszett-converter"
             icon={Replace}
             label="Eszett Converter"
+          />
+          <NavItem href="/focus-timer" icon={Focus} label="Focus Timer" />
+          <NavItem
+            href="/grammar-checker"
+            icon={BookCheck}
+            label="Grammar Checker"
           />
           <NavItem
             href="/homework"

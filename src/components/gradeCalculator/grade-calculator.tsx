@@ -9,15 +9,15 @@ import {
   ChevronDown,
   ChevronUp,
   Info,
-  HelpCircle,
   Check,
   AlertCircle,
+  Sparkles,
 } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { TooltipProvider } from "@/components/ui/tooltip"
 import {
   roundingMethods,
   calculateStepwiseGrade,
@@ -25,6 +25,7 @@ import {
   type Step,
   type CustomGradeSettings,
 } from "@/components/gradeCalculator/gradeUtils"
+import { getGradeQualityColor } from "@/lib/grade-colors"
 
 const gradingMethods = {
   linear: {
@@ -48,6 +49,7 @@ const gradingSystems = {
     max: 6,
     pass: 4,
     formula: defaultFormula,
+    description: "Grades from 1-6 (6 is best, 4 to pass)",
   },
   germany: {
     name: "Germany",
@@ -55,6 +57,7 @@ const gradingSystems = {
     max: 6,
     pass: 4,
     formula: defaultFormula,
+    description: "Grades from 1-6 (1 is best, 4 to pass)",
   },
   usa: {
     name: "USA",
@@ -62,6 +65,7 @@ const gradingSystems = {
     max: 100,
     pass: 60,
     formula: defaultFormula,
+    description: "Percentage from 0-100 (60% to pass)",
   },
   custom: {
     name: "Custom",
@@ -83,6 +87,7 @@ const gradingSystems = {
       const max = customSettings?.max ?? 10
       return min + (achieved / maximum) * (max - min)
     },
+    description: "Define your own grading system",
   },
 }
 
@@ -106,7 +111,7 @@ export function GradeCalculator() {
   const [averageGrade, setAverageGrade] = useState<number | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  const [showExtendedMode, setShowExtendedMode] = useState(false)
+  const [showAdvancedSettings, setShowAdvancedSettings] = useState(false)
   const [roundingMethod, setRoundingMethod] = useState("nearest")
   const [roundingPrecision, setRoundingPrecision] = useState(2)
   const [gradingMethod, setGradingMethod] = useState("linear")
@@ -272,13 +277,7 @@ export function GradeCalculator() {
   const getGradeColor = (grade: number | null) => {
     if (grade === null) return "text-muted-foreground"
 
-    const passGrade = system === "custom" ? Number(customPass) : selectedSystem.pass
-
-    if (system === "germany") {
-      return grade <= passGrade ? "text-green-500 dark:text-green-400" : "text-red-500 dark:text-red-400"
-    } else {
-      return grade >= passGrade ? "text-green-500 dark:text-green-400" : "text-red-500 dark:text-red-400"
-    }
+    return getGradeQualityColor(grade, system)
   }
 
   const handleSystemChange = (newSystem: string) => {
@@ -341,110 +340,306 @@ export function GradeCalculator() {
     <TooltipProvider>
       <Card className="p-6 border-2 border-border/60 dark:border-border/80 shadow-lg dark:shadow-xl">
         <div className="mb-6">
-          <div className="bg-pink-200 dark:bg-pink-900/40 p-4 rounded-lg border-2 border-pink-300 dark:border-pink-600 flex items-center justify-between">
+          <div className="bg-purple-200 dark:bg-purple-900/40 p-4 rounded-lg border-2 border-purple-300 dark:border-purple-600 flex items-center justify-between">
             <div className="flex items-start gap-3">
-              <div className="rounded-full p-2 bg-pink-500 text-white self-center">
+              <div className="rounded-full p-2 bg-purple-500 text-white self-center">
                 <Calculator className="h-5 w-5" />
               </div>
               <div>
-                <h2 className="text-xl font-semibold text-pink-950 dark:text-white">Grade Calculator</h2>
-                <p className="text-sm text-pink-900 dark:text-pink-100">
-                  Calculate grades from points or compute weighted averages with advanced grading options.
+                <h2 className="text-xl font-semibold text-purple-950 dark:text-white">Grade Calculator</h2>
+                <p className="text-sm text-purple-900 dark:text-purple-100">
+                  Calculate grades from points or find your average grade
                 </p>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="flex flex-col gap-2 mb-6">
-          <div className="flex flex-row flex-wrap items-center gap-2">
-            <Label htmlFor="grading-system" className="text-sm flex items-center gap-1">
-              Grading System
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
-                </TooltipTrigger>
-                <TooltipContent className="max-w-xs">
-                  <p>Select the grading system that matches your school or institution.</p>
-                </TooltipContent>
-              </Tooltip>
-            </Label>
-            <select
-              id="grading-system"
-              value={system}
-              onChange={(e) => handleSystemChange(e.target.value)}
-              className="h-8 rounded-md border border-input bg-muted/70 dark:bg-muted/80 px-3 py-1 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-            >
-              <option value="switzerland">Switzerland</option>
-              <option value="germany">Germany</option>
-              <option value="usa">USA</option>
-              <option value="custom">Custom</option>
-            </select>
-
-            <div className="text-sm text-muted-foreground mt-1 p-2 bg-muted/30 rounded-md w-full">
-              {system === "switzerland" && (
-                <div className="flex items-center gap-2">
-                  <Info className="h-4 w-4 flex-shrink-0" />
-                  <span>In Switzerland, grades range from 1 to 6, with 6 being the best. 4 is the passing grade.</span>
-                </div>
-              )}
-              {system === "germany" && (
-                <div className="flex items-center gap-2">
-                  <Info className="h-4 w-4 flex-shrink-0" />
-                  <span>In Germany, grades range from 1 to 6, with 1 being the best. 4 is the passing grade.</span>
-                </div>
-              )}
-              {system === "usa" && (
-                <div className="flex items-center gap-2">
-                  <Info className="h-4 w-4 flex-shrink-0" />
-                  <span>
-                    In the USA, grades typically range from 0 to 100, with 60% or higher being a passing grade.
-                  </span>
-                </div>
-              )}
-              {system === "custom" && (
-                <div className="flex items-center gap-2">
-                  <Info className="h-4 w-4 flex-shrink-0" />
-                  <span>
-                    Custom grading system. Define your own grade range and passing threshold in Advanced Settings.
-                  </span>
-                </div>
-              )}
-            </div>
-          </div>
+        <div className="mb-6 p-4 bg-muted/30 rounded-lg border border-border/40">
+          <Label htmlFor="grading-system" className="text-sm font-medium mb-2 block">
+            Select Your Grading System
+          </Label>
+          <select
+            id="grading-system"
+            value={system}
+            onChange={(e) => handleSystemChange(e.target.value)}
+            className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          >
+            {Object.entries(gradingSystems).map(([key, sys]) => (
+              <option key={key} value={key}>
+                {sys.name} - {sys.description}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div className="mb-6">
+          <div className="grid grid-cols-2 gap-2 p-1 bg-muted/30 rounded-lg">
+            <button
+              className={`px-4 py-2.5 font-medium text-sm rounded-md transition-all ${
+                activeTab === "points"
+                  ? "bg-background shadow-sm text-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+              onClick={() => {
+                setActiveTab("points")
+                setError(null)
+              }}
+            >
+              Points → Grade
+            </button>
+            <button
+              className={`px-4 py-2.5 font-medium text-sm rounded-md transition-all ${
+                activeTab === "average"
+                  ? "bg-background shadow-sm text-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+              onClick={() => {
+                setActiveTab("average")
+                setError(null)
+              }}
+            >
+              Average Grades
+            </button>
+          </div>
+        </div>
+
+        {error && (
+          <div className="mb-4 p-3 bg-red-100 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-md text-red-800 dark:text-red-200 flex items-center gap-2">
+            <AlertCircle className="h-4 w-4 flex-shrink-0" />
+            <span className="text-sm">{error}</span>
+          </div>
+        )}
+
+        {activeTab === "points" ? (
+          <div className="space-y-6">
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold">
+                  1
+                </div>
+                <span>Enter your points</span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-8">
+                <div>
+                  <Label htmlFor="maximum-points" className="mb-2 block">
+                    Maximum Points
+                  </Label>
+                  <Input
+                    id="maximum-points"
+                    type="number"
+                    min="0"
+                    step="0.5"
+                    value={maximumPoints}
+                    onChange={(e) => setMaximumPoints(e.target.value)}
+                    placeholder="e.g., 30"
+                    className="h-11 text-base"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="achieved-points" className="mb-2 block">
+                    Your Points
+                  </Label>
+                  <Input
+                    id="achieved-points"
+                    type="number"
+                    min="0"
+                    step="0.5"
+                    value={achievedPoints}
+                    onChange={(e) => setAchievedPoints(e.target.value)}
+                    placeholder="e.g., 24"
+                    className="h-11 text-base"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold">
+                  2
+                </div>
+                <span>Calculate your grade</span>
+              </div>
+
+              <div className="pl-8">
+                <Button
+                  onClick={calculateGrade}
+                  className="w-full h-11 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white transition-all shadow-md hover:shadow-lg"
+                  disabled={!maximumPoints || !achievedPoints}
+                >
+                  <Calculator className="h-4 w-4 mr-2" />
+                  Calculate Grade
+                </Button>
+              </div>
+            </div>
+
+            {calculatedGrade !== null && (
+              <div className="mt-6 p-6 bg-gradient-to-br from-muted/50 to-muted/30 border-2 border-border/60 rounded-xl text-center space-y-3">
+                <div className="flex items-center justify-center gap-2 text-sm font-medium text-muted-foreground">
+                  <Sparkles className="h-4 w-4" />
+                  <span>Your Result</span>
+                </div>
+                <div className={`text-5xl font-bold ${getGradeColor(calculatedGrade)}`}>
+                  {typeof calculatedGrade === "number" ? calculatedGrade.toFixed(roundingPrecision) : calculatedGrade}
+                </div>
+                <div className="flex items-center justify-center gap-2 pt-2">
+                  {calculatedGrade >= selectedSystem.pass ? (
+                    <div className="flex items-center gap-2 px-4 py-2 bg-green-100 dark:bg-green-900/30 rounded-full">
+                      <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
+                      <span className="text-sm font-medium text-green-700 dark:text-green-300">
+                        {getPassingMessage(calculatedGrade)}
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 px-4 py-2 bg-orange-100 dark:bg-orange-900/30 rounded-full">
+                      <AlertCircle className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+                      <span className="text-sm font-medium text-orange-700 dark:text-orange-300">
+                        {getPassingMessage(calculatedGrade)}
+                      </span>
+                    </div>
+                  )}
+                </div>
+                <div className="text-xs text-muted-foreground pt-2">
+                  {achievedPoints}/{maximumPoints} points (
+                  {Math.round((Number(achievedPoints) / Number(maximumPoints)) * 100)}%)
+                </div>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="space-y-6">
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground mb-3">
+                <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold">
+                  1
+                </div>
+                <span>Enter your grades</span>
+              </div>
+
+              <div className="space-y-3 pl-8">
+                {gradeEntries.map((entry, index) => (
+                  <div key={entry.id} className="flex items-center gap-3">
+                    <div className="flex-1">
+                      <Input
+                        type="number"
+                        min={selectedSystem.min}
+                        max={selectedSystem.max}
+                        step="0.1"
+                        value={entry.grade}
+                        onChange={(e) => updateGradeEntry(entry.id, "grade", e.target.value)}
+                        placeholder={`Grade ${index + 1} (${selectedSystem.min}-${selectedSystem.max})`}
+                        className="h-11 text-base"
+                      />
+                    </div>
+                    <div className="w-24">
+                      <Input
+                        type="number"
+                        min="0.1"
+                        step="0.1"
+                        value={entry.weight}
+                        onChange={(e) => updateGradeEntry(entry.id, "weight", e.target.value)}
+                        placeholder="Weight"
+                        className="h-11 text-base"
+                      />
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => removeGradeEntry(entry.id)}
+                      disabled={gradeEntries.length <= 1}
+                      className="h-11 w-11 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/30 dark:hover:text-red-400"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+
+              <div className="pl-8">
+                <Button variant="outline" onClick={addGradeEntry} className="w-full h-10 bg-transparent">
+                  <Plus className="h-4 w-4 mr-2" /> Add Another Grade
+                </Button>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold">
+                  2
+                </div>
+                <span>Calculate average</span>
+              </div>
+
+              <div className="pl-8">
+                <Button
+                  onClick={calculateAverage}
+                  className="w-full h-11 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white transition-all shadow-md hover:shadow-lg"
+                >
+                  <Calculator className="h-4 w-4 mr-2" />
+                  Calculate Average
+                </Button>
+              </div>
+            </div>
+
+            {averageGrade !== null && (
+              <div className="mt-6 p-6 bg-gradient-to-br from-muted/50 to-muted/30 border-2 border-border/60 rounded-xl text-center space-y-3">
+                <div className="flex items-center justify-center gap-2 text-sm font-medium text-muted-foreground">
+                  <Sparkles className="h-4 w-4" />
+                  <span>Your Average</span>
+                </div>
+                <div className={`text-5xl font-bold ${getGradeColor(averageGrade)}`}>
+                  {typeof averageGrade === "number" ? averageGrade.toFixed(roundingPrecision) : averageGrade}
+                </div>
+                <div className="flex items-center justify-center gap-2 pt-2">
+                  {averageGrade >= selectedSystem.pass ? (
+                    <div className="flex items-center gap-2 px-4 py-2 bg-green-100 dark:bg-green-900/30 rounded-full">
+                      <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
+                      <span className="text-sm font-medium text-green-700 dark:text-green-300">
+                        {getPassingMessage(averageGrade)}
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 px-4 py-2 bg-orange-100 dark:bg-orange-900/30 rounded-full">
+                      <AlertCircle className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+                      <span className="text-sm font-medium text-orange-700 dark:text-orange-300">
+                        {getPassingMessage(averageGrade)}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        <div className="mt-8 pt-6 border-t border-border/40">
           <Button
-            variant="outline"
-            className="w-full flex justify-between items-center hover:bg-muted/50 transition-colors"
-            onClick={() => setShowExtendedMode(!showExtendedMode)}
+            variant="ghost"
+            className="w-full flex justify-between items-center text-muted-foreground hover:text-foreground"
+            onClick={() => setShowAdvancedSettings(!showAdvancedSettings)}
           >
             <div className="flex items-center gap-2">
               <Settings className="h-4 w-4" />
-              <span>Advanced Settings</span>
+              <span className="text-sm">Advanced Settings</span>
             </div>
-            {showExtendedMode ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            {showAdvancedSettings ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
           </Button>
         </div>
 
-        {showExtendedMode && (
-          <div className="mb-6 p-4 bg-muted/30 border-2 border-muted-foreground/20 dark:border-muted-foreground/30 rounded-lg space-y-4">
-            <h3 className="font-medium text-sm mb-2">Advanced Grading Options</h3>
+        {showAdvancedSettings && (
+          <div className="mt-4 p-4 bg-muted/30 border border-border/40 rounded-lg space-y-4">
+            <p className="text-xs text-muted-foreground flex items-center gap-2">
+              <Info className="h-3.5 w-3.5" />
+              These settings are for advanced users who need custom grading configurations
+            </p>
 
             {system === "custom" && (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <Label htmlFor="custom-min" className="mb-2 block items-center gap-1">
+                  <Label htmlFor="custom-min" className="mb-2 block text-xs">
                     Minimum Grade
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>The lowest possible grade in your system</p>
-                      </TooltipContent>
-                    </Tooltip>
                   </Label>
                   <Input
                     id="custom-min"
@@ -452,20 +647,12 @@ export function GradeCalculator() {
                     value={customMin}
                     onChange={(e) => setCustomMin(e.target.value)}
                     placeholder="Minimum grade"
-                    className="bg-muted/70 dark:bg-muted/80"
+                    className="h-9 text-sm"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="custom-max" className="mb-2 block items-center gap-1">
+                  <Label htmlFor="custom-max" className="mb-2 block text-xs">
                     Maximum Grade
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>The highest possible grade in your system</p>
-                      </TooltipContent>
-                    </Tooltip>
                   </Label>
                   <Input
                     id="custom-max"
@@ -473,20 +660,12 @@ export function GradeCalculator() {
                     value={customMax}
                     onChange={(e) => setCustomMax(e.target.value)}
                     placeholder="Maximum grade"
-                    className="bg-muted/70 dark:bg-muted/80"
+                    className="h-9 text-sm"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="custom-pass" className="mb-2 block items-center gap-1">
+                  <Label htmlFor="custom-pass" className="mb-2 block text-xs">
                     Passing Grade
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>The minimum grade required to pass</p>
-                      </TooltipContent>
-                    </Tooltip>
                   </Label>
                   <Input
                     id="custom-pass"
@@ -494,7 +673,7 @@ export function GradeCalculator() {
                     value={customPass}
                     onChange={(e) => setCustomPass(e.target.value)}
                     placeholder="Passing grade"
-                    className="bg-muted/70 dark:bg-muted/80"
+                    className="h-9 text-sm"
                   />
                 </div>
               </div>
@@ -502,22 +681,14 @@ export function GradeCalculator() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="rounding-method" className="mb-2 block items-center gap-1">
+                <Label htmlFor="rounding-method" className="mb-2 block text-xs">
                   Rounding Method
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>How the final grade should be rounded</p>
-                    </TooltipContent>
-                  </Tooltip>
                 </Label>
                 <select
                   id="rounding-method"
                   value={roundingMethod}
                   onChange={(e) => setRoundingMethod(e.target.value)}
-                  className="w-full h-10 rounded-md border border-input bg-muted/70 dark:bg-muted/80 px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm"
                 >
                   {Object.entries(roundingMethods).map(([key, method]) => (
                     <option key={key} value={key}>
@@ -525,29 +696,18 @@ export function GradeCalculator() {
                     </option>
                   ))}
                 </select>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {roundingMethods[roundingMethod as keyof typeof roundingMethods].description}
-                </p>
               </div>
 
               {roundingMethod === "stepRounding" ? (
                 <div>
-                  <Label htmlFor="rounding-step" className="mb-2 block items-center gap-1">
+                  <Label htmlFor="rounding-step" className="mb-2 block text-xs">
                     Rounding Step
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Round to the nearest increment (e.g., 0.5, 0.25)</p>
-                      </TooltipContent>
-                    </Tooltip>
                   </Label>
                   <select
                     id="rounding-step"
                     value={roundingStep.toString()}
                     onChange={(e) => setRoundingStep(Number(e.target.value))}
-                    className="w-full h-10 rounded-md border border-input bg-muted/70 dark:bg-muted/80 px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm"
                   >
                     <option value="1">1.0</option>
                     <option value="0.5">0.5</option>
@@ -557,20 +717,11 @@ export function GradeCalculator() {
                     <option value="0.05">0.05</option>
                     <option value="0.01">0.01</option>
                   </select>
-                  <p className="text-xs text-muted-foreground mt-1">Round to the nearest {roundingStep} increment</p>
                 </div>
               ) : (
                 <div>
-                  <Label htmlFor="rounding-precision" className="mb-2 block items-center gap-1">
+                  <Label htmlFor="rounding-precision" className="mb-2 block text-xs">
                     Decimal Places
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Number of decimal places to show in the result</p>
-                      </TooltipContent>
-                    </Tooltip>
                   </Label>
                   <Input
                     id="rounding-precision"
@@ -580,29 +731,21 @@ export function GradeCalculator() {
                     value={roundingPrecision}
                     onChange={(e) => setRoundingPrecision(Number(e.target.value))}
                     placeholder="Decimal places"
-                    className="bg-muted/70 dark:bg-muted/80"
+                    className="h-9 text-sm"
                   />
                 </div>
               )}
             </div>
 
             <div>
-              <Label htmlFor="grading-method" className="mb-2 flex items-center gap-1">
+              <Label htmlFor="grading-method" className="mb-2 block text-xs">
                 Grading Method
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>How points are converted to grades</p>
-                  </TooltipContent>
-                </Tooltip>
               </Label>
               <select
                 id="grading-method"
                 value={gradingMethod}
                 onChange={(e) => setGradingMethod(e.target.value)}
-                className="w-full h-10 rounded-md border border-input bg-muted/70 dark:bg-muted/80 px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm"
               >
                 {Object.entries(gradingMethods).map(([key, method]) => (
                   <option key={key} value={key}>
@@ -610,64 +753,34 @@ export function GradeCalculator() {
                   </option>
                 ))}
               </select>
-              <p className="text-xs text-muted-foreground mt-1">
-                {gradingMethods[gradingMethod as keyof typeof gradingMethods].description}
-              </p>
             </div>
 
             {gradingMethod === "custom" && (
               <div>
-                <Label htmlFor="custom-formula" className="mb-2 flex items-center gap-1">
+                <Label htmlFor="custom-formula" className="mb-2 block text-xs">
                   Custom Formula
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Create your own formula to calculate grades</p>
-                    </TooltipContent>
-                  </Tooltip>
                 </Label>
                 <Input
                   id="custom-formula"
                   value={customFormula}
                   onChange={(e) => setCustomFormula(e.target.value)}
                   placeholder="e.g., 5 * (achieved / maximum) + 1"
-                  className="bg-muted/70 dark:bg-muted/80"
+                  className="h-9 text-sm font-mono"
                 />
-                <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                  <Info className="h-3 w-3" />
-                  Available variables: &apos;achieved&apos;, &apos;maximum&apos;, &apos;min&apos;, and &apos;max&apos;
-                </p>
+                <p className="text-xs text-muted-foreground mt-1">Variables: achieved, maximum, min, max</p>
               </div>
             )}
 
             {gradingMethod === "stepwise" && (
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label className="font-medium flex items-center gap-1">
-                    Grade Steps
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Define grade thresholds based on percentage of points achieved</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </Label>
-                  <Button variant="outline" size="sm" onClick={addStep} className="h-7 px-2 text-xs">
+                  <Label className="text-xs font-medium">Grade Steps</Label>
+                  <Button variant="outline" size="sm" onClick={addStep} className="h-7 px-2 text-xs bg-transparent">
                     <Plus className="h-3 w-3 mr-1" /> Add Step
                   </Button>
                 </div>
 
                 <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
-                  <div className="grid grid-cols-12 gap-2 text-xs font-medium text-muted-foreground px-2">
-                    <div className="col-span-5">Percentage ≤</div>
-                    <div className="col-span-5">Grade</div>
-                    <div className="col-span-2"></div>
-                  </div>
-
                   {steps.map((step) => (
                     <div key={step.id} className="grid grid-cols-12 gap-2 items-center">
                       <div className="col-span-5">
@@ -677,7 +790,7 @@ export function GradeCalculator() {
                           max="100"
                           value={step.threshold}
                           onChange={(e) => updateStep(step.id, "threshold", Number(e.target.value))}
-                          className="h-8 text-sm bg-muted/70 dark:bg-muted/80"
+                          className="h-8 text-sm"
                         />
                       </div>
                       <div className="col-span-5">
@@ -688,7 +801,7 @@ export function GradeCalculator() {
                           step="0.1"
                           value={step.grade}
                           onChange={(e) => updateStep(step.id, "grade", Number(e.target.value))}
-                          className="h-8 text-sm bg-muted/70 dark:bg-muted/80"
+                          className="h-8 text-sm"
                         />
                       </div>
                       <div className="col-span-2 flex justify-end">
@@ -704,231 +817,6 @@ export function GradeCalculator() {
                       </div>
                     </div>
                   ))}
-                </div>
-
-                <p className="text-xs text-muted-foreground mt-1">
-                  Define grade thresholds based on percentage of points achieved
-                </p>
-              </div>
-            )}
-          </div>
-        )}
-
-        <div className="mb-6">
-          <div className="flex border-b">
-            <button
-              className={`px-4 py-2 font-medium text-sm ${
-                activeTab === "points"
-                  ? "border-b-2 border-primary text-primary"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors"
-              }`}
-              onClick={() => {
-                setActiveTab("points")
-                setError(null)
-              }}
-            >
-              Calculate from Points
-            </button>
-            <button
-              className={`px-4 py-2 font-medium text-sm ${
-                activeTab === "average"
-                  ? "border-b-2 border-primary text-primary"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors"
-              }`}
-              onClick={() => {
-                setActiveTab("average")
-                setError(null)
-              }}
-            >
-              Calculate Average Grade
-            </button>
-          </div>
-        </div>
-
-        {error && (
-          <div className="mb-4 p-3 bg-red-100 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-md text-red-800 dark:text-red-200 flex items-center gap-2">
-            <AlertCircle className="h-4 w-4" />
-            <span className="text-sm">{error}</span>
-          </div>
-        )}
-
-        {activeTab === "points" ? (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="maximum-points" className="mb-2 block items-center gap-1">
-                  Maximum Points
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>The total number of points possible</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </Label>
-                <Input
-                  id="maximum-points"
-                  type="number"
-                  min="0"
-                  step="0.5"
-                  value={maximumPoints}
-                  onChange={(e) => setMaximumPoints(e.target.value)}
-                  placeholder="Enter maximum points"
-                  className="bg-muted/70 dark:bg-muted/80"
-                />
-              </div>
-              <div>
-                <Label htmlFor="achieved-points" className="mb-2 block items-center gap-1">
-                  Achieved Points
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>The number of points you earned</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </Label>
-                <Input
-                  id="achieved-points"
-                  type="number"
-                  min="0"
-                  step="0.5"
-                  value={achievedPoints}
-                  onChange={(e) => setAchievedPoints(e.target.value)}
-                  placeholder="Enter achieved points"
-                  className="bg-muted/70 dark:bg-muted/80"
-                />
-              </div>
-            </div>
-
-            <Button
-              onClick={calculateGrade}
-              className="w-full bg-pink-500 hover:bg-pink-600 text-white transition-colors"
-              disabled={!maximumPoints || !achievedPoints}
-            >
-              <Calculator className="h-4 w-4 mr-2" />
-              Calculate Grade
-            </Button>
-
-            {calculatedGrade !== null && (
-              <div className="mt-6 p-4 bg-muted/50 border-2 border-muted-foreground/20 dark:border-muted-foreground/30 rounded-lg text-center">
-                <p className="text-sm font-medium mb-2">Your grade is:</p>
-                <p className={`text-3xl font-bold ${getGradeColor(calculatedGrade)}`}>
-                  {typeof calculatedGrade === "number" ? calculatedGrade.toFixed(roundingPrecision) : calculatedGrade}
-                </p>
-                <div className="flex items-center justify-center gap-2 mt-2">
-                  {calculatedGrade >= selectedSystem.pass ? (
-                    <Check className="h-4 w-4 text-green-500" />
-                  ) : (
-                    <AlertCircle className="h-4 w-4 text-red-500" />
-                  )}
-                  <p className="text-sm text-muted-foreground">{getPassingMessage(calculatedGrade)}</p>
-                </div>
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="space-y-6">
-            <div className="space-y-4">
-              {gradeEntries.map((entry, index) => (
-                <div key={entry.id} className="flex items-end gap-2 p-3 bg-muted/20 rounded-md">
-                  <div className="flex-1">
-                    <Label htmlFor={`grade-${entry.id}`} className="mb-2 block items-center gap-1">
-                      Grade {index + 1}
-                      {index === 0 && (
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Enter your grade for this course/assignment</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      )}
-                    </Label>
-                    <Input
-                      id={`grade-${entry.id}`}
-                      type="number"
-                      min={selectedSystem.min}
-                      max={selectedSystem.max}
-                      step="0.1"
-                      value={entry.grade}
-                      onChange={(e) => updateGradeEntry(entry.id, "grade", e.target.value)}
-                      placeholder={`Enter grade (${selectedSystem.min}-${selectedSystem.max})`}
-                      className="bg-muted/70 dark:bg-muted/80"
-                    />
-                  </div>
-                  <div className="w-24">
-                    <Label htmlFor={`weight-${entry.id}`} className="mb-2 block items-center gap-1">
-                      Weight
-                      {index === 0 && (
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>How important this grade is in the average (e.g., 2 = counts twice)</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      )}
-                    </Label>
-                    <Input
-                      id={`weight-${entry.id}`}
-                      type="number"
-                      min="0.1"
-                      step="0.1"
-                      value={entry.weight}
-                      onChange={(e) => updateGradeEntry(entry.id, "weight", e.target.value)}
-                      placeholder="Weight"
-                      className="bg-muted/70 dark:bg-muted/80"
-                    />
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => removeGradeEntry(entry.id)}
-                    disabled={gradeEntries.length <= 1}
-                    className="mb-0.5 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/30 dark:hover:text-red-400"
-                    title="Remove this grade"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              ))}
-            </div>
-
-            <div className="flex gap-4">
-              <Button
-                variant="outline"
-                onClick={addGradeEntry}
-                className="flex items-center gap-1 hover:bg-muted/50 transition-colors"
-              >
-                <Plus className="h-4 w-4" /> Add Grade
-              </Button>
-              <Button
-                onClick={calculateAverage}
-                className="flex-1 bg-pink-500 hover:bg-pink-600 text-white transition-colors"
-              >
-                <Calculator className="h-4 w-4 mr-2" />
-                Calculate Average
-              </Button>
-            </div>
-
-            {averageGrade !== null && (
-              <div className="mt-6 p-4 bg-muted/50 border-2 border-muted-foreground/20 dark:border-muted-foreground/30 rounded-lg text-center">
-                <p className="text-sm font-medium mb-2">Your average grade is:</p>
-                <p className={`text-3xl font-bold ${getGradeColor(averageGrade)}`}>
-                  {typeof averageGrade === "number" ? averageGrade.toFixed(roundingPrecision) : averageGrade}
-                </p>
-                <div className="flex items-center justify-center gap-2 mt-2">
-                  {averageGrade >= selectedSystem.pass ? (
-                    <Check className="h-4 w-4 text-green-500" />
-                  ) : (
-                    <AlertCircle className="h-4 w-4 text-red-500" />
-                  )}
-                  <p className="text-sm text-muted-foreground">{getPassingMessage(averageGrade)}</p>
                 </div>
               </div>
             )}

@@ -24,7 +24,7 @@ import {
   LogIn,
   UserPlus,
   Notebook,
-  History,
+  Timer,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -66,7 +66,7 @@ export default function DashboardLayout({
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((_event: any, session: any) => {
       setUser(session?.user ?? null)
     })
 
@@ -138,17 +138,23 @@ export default function DashboardLayout({
             <NavItem href="/" icon={Home} label="Dashboard" onNavigate={closeSidebar} />
             <NavItem href="/grade-calculator" icon={Calculator} label="Grade Calculator" onNavigate={closeSidebar} />
             <NavItem href="/grade-tool" icon={Notebook} label="Grade Tool" onNavigate={closeSidebar} />
-            <NavItem href="/grade-history" icon={History} label="Grade History" onNavigate={closeSidebar} />
+            <NavItem href="/focus-timer" icon={Timer} label="Focus Timer" onNavigate={closeSidebar} />
             <NavItem href="/eszett-converter" icon={Replace} label="Eszett Converter" onNavigate={closeSidebar} />
-            <NavItem href="/homework" icon={ClipboardList} label="Homework Planner" onNavigate={closeSidebar} />
-            <NavItem href="/exam-prep" icon={Brain} label="Exam Preparation" onNavigate={closeSidebar} />
-            <NavItem href="/timetable" icon={Calendar} label="Timetable" onNavigate={closeSidebar} />
-            <NavItem href="/community" icon={Users} label="Community" onNavigate={closeSidebar} />
+            <NavItem
+              href="/homework"
+              icon={ClipboardList}
+              label="Homework Planner"
+              onNavigate={closeSidebar}
+              comingSoon
+            />
+            <NavItem href="/exam-prep" icon={Brain} label="Exam Preparation" onNavigate={closeSidebar} comingSoon />
+            <NavItem href="/timetable" icon={Calendar} label="Timetable" onNavigate={closeSidebar} comingSoon />
+            <NavItem href="/community" icon={Users} label="Community" onNavigate={closeSidebar} comingSoon />
             <NavItem href="/sites" icon={Globe} label="Sites" onNavigate={closeSidebar} />
 
             <div className="pt-2">
               <div className="text-xs font-semibold text-muted-foreground px-2 py-2">SUPPORT</div>
-              <NavItem href="/help" icon={HelpCircle} label="Help Center" onNavigate={closeSidebar} />
+              <NavItem href="/help" icon={HelpCircle} label="Help Center" onNavigate={closeSidebar} comingSoon />
               <NavItem href="/settings" icon={Settings} label="Settings" onNavigate={closeSidebar} />
             </div>
           </nav>
@@ -167,17 +173,17 @@ export default function DashboardLayout({
           <NavItem href="/" icon={Home} label="Dashboard" />
           <NavItem href="/grade-calculator" icon={Calculator} label="Grade Calculator" />
           <NavItem href="/grade-tool" icon={Notebook} label="Grade Tool" />
-          <NavItem href="/grade-history" icon={History} label="Grade History" />
+          <NavItem href="/focus-timer" icon={Timer} label="Focus Timer" />
           <NavItem href="/eszett-converter" icon={Replace} label="Eszett Converter" />
-          <NavItem href="/homework" icon={ClipboardList} label="Homework Planner" />
-          <NavItem href="/exam-prep" icon={Brain} label="Exam Preparation" />
-          <NavItem href="/timetable" icon={Calendar} label="Timetable" />
-          <NavItem href="/community" icon={Users} label="Community" />
+          <NavItem href="/homework" icon={ClipboardList} label="Homework Planner" comingSoon />
+          <NavItem href="/exam-prep" icon={Brain} label="Exam Preparation" comingSoon />
+          <NavItem href="/timetable" icon={Calendar} label="Timetable" comingSoon />
+          <NavItem href="/community" icon={Users} label="Community" comingSoon />
           <NavItem href="/sites" icon={Globe} label="Sites" />
 
           <div className="pt-2">
             <div className="text-xs font-semibold text-muted-foreground px-2 py-2">SUPPORT</div>
-            <NavItem href="/help" icon={HelpCircle} label="Help Center" />
+            <NavItem href="/help" icon={HelpCircle} label="Help Center" comingSoon />
             <NavItem href="/settings" icon={Settings} label="Settings" />
           </div>
         </nav>

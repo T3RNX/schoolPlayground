@@ -15,6 +15,7 @@ import {
   Layers,
   Pencil,
   Settings,
+  Trash2,
 } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -22,18 +23,11 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Calendar } from "@/components/ui/calendar"
+import { DatePicker } from "@/components/ui/date-picker"
 import { createBrowserClient } from "@/lib/supabase/client"
 import Link from "next/link"
 import { getGradeQualityColor, getGradeQualityBadgeColor } from "@/lib/grade-colors"
-import {
-  calculatePluspoints,
-  calculateTotalPluspoints,
-  getPluspointsColor,
-  getPluspointsBadgeColor,
-} from "@/lib/pluspoints"
-import { cn } from "@/lib/utils"
+import { calculatePluspoints, getPluspointsColor } from "@/lib/pluspoints"
 import { format } from "date-fns"
 
 type Semester = {
@@ -100,9 +94,12 @@ export function GradeTool() {
     grade: "",
     weight: "1",
     category: "Test",
+    date: new Date(), // Added date field with today as default
   })
 
   const [editingGrade, setEditingGrade] = useState<string | null>(null)
+  const [editingSemester, setEditingSemester] = useState<string | null>(null)
+  const [editingSubject, setEditingSubject] = useState<string | null>(null)
 
   const supabase = createBrowserClient()
 
@@ -194,6 +191,62 @@ export function GradeTool() {
     setShowNewSemester(false)
   }
 
+  const updateSemester = async (semesterId: string) => {
+    if (!newSemesterName.trim()) return
+
+    const { data, error } = await supabase
+      .from("semesters")
+      .update({
+        name: newSemesterName.trim(),
+        start_date: newSemesterStart ? format(newSemesterStart, "yyyy-MM-dd") : null,
+        end_date: newSemesterEnd ? format(newSemesterEnd, "yyyy-MM-dd") : null,
+      })
+      .eq("id", semesterId)
+      .select()
+
+    if (error) {
+      console.error("Failed to update semester:", error)
+      return
+    }
+
+    if (data) {
+      setSemesters(semesters.map((s) => (s.id === semesterId ? data[0] : s)))
+    }
+
+    setNewSemesterName("")
+    setNewSemesterStart(undefined)
+    setNewSemesterEnd(undefined)
+    setEditingSemester(null)
+    setShowNewSemester(false)
+  }
+
+  const deleteSemester = async (semesterId: string) => {
+    const { error } = await supabase.from("semesters").delete().eq("id", semesterId)
+    if (error) {
+      console.error("Failed to delete semester:", error)
+      return
+    }
+    setSemesters(semesters.filter((s) => s.id !== semesterId))
+    setSubjects(subjects.filter((s) => s.semester_id !== semesterId))
+    setGrades(grades.filter((g) => g.semester_id !== semesterId))
+  }
+
+  const startEditSemester = (semester: Semester) => {
+    setEditingSemester(semester.id)
+    setShowNewSemester(true)
+    setNewSemesterName(semester.name)
+    setNewSemesterStart(semester.start_date ? new Date(semester.start_date) : undefined)
+    setNewSemesterEnd(semester.end_date ? new Date(semester.end_date) : undefined)
+  }
+
+  const cancelEditSemester = () => {
+    setEditingSemester(null)
+    setShowNewSemester(false)
+    setNewSemesterName("")
+    setNewSemesterStart(undefined)
+    setNewSemesterEnd(undefined)
+  }
+
   const addSubject = async (semesterId: string) => {
     if (!newSubjectName.trim()) return
 
@@ -222,6 +275,53 @@ export function GradeTool() {
     setShowNewSubject(null)
   }
 
+  const updateSubject = async (subjectId: string) => {
+    if (!newSubjectName.trim()) return
+
+    const { data, error } = await supabase
+      .from("subjects")
+      .update({
+        name: newSubjectName.trim(),
+      })
+      .eq("id", subjectId)
+      .select()
+
+    if (error) {
+      console.error("Failed to update subject:", error)
+      return
+    }
+
+    if (data) {
+      setSubjects(subjects.map((s) => (s.id === subjectId ? data[0] : s)))
+    }
+
+    setNewSubjectName("")
+    setEditingSubject(null)
+    setShowNewSubject(null)
+  }
+
+  const deleteSubject = async (subjectId: string) => {
+    const { error } = await supabase.from("subjects").delete().eq("id", subjectId)
+    if (error) {
+      console.error("Failed to delete subject:", error)
+      return
+    }
+    setSubjects(subjects.filter((s) => s.id !== subjectId))
+    setGrades(grades.filter((g) => g.subject_id !== subjectId))
+  }
+
+  const startEditSubject = (subject: Subject) => {
+    setEditingSubject(subject.id)
+    setShowNewSubject(subject.semester_id)
+    setNewSubjectName(subject.name)
+  }
+
+  const cancelEditSubject = () => {
+    setEditingSubject(null)
+    setShowNewSubject(null)
+    setNewSubjectName("")
+  }
+
   const addGrade = async (subjectId: string) => {
     if (!gradeForm.grade.trim()) return
 
@@ -243,7 +343,7 @@ export function GradeTool() {
           grade: gradeNum,
           max_grade: selectedSystem.max,
           weight: Number.parseFloat(gradeForm.weight) || 1,
-          date: new Date().toISOString().split("T")[0],
+          date: format(gradeForm.date, "yyyy-MM-dd"), // Use the date from form
           category: gradeForm.category,
         },
       ])
@@ -258,7 +358,7 @@ export function GradeTool() {
       setGrades([data[0], ...grades])
     }
 
-    setGradeForm({ assignment: "", grade: "", weight: "1", category: "Test" })
+    setGradeForm({ assignment: "", grade: "", weight: "1", category: "Test", date: new Date() }) // Reset with today's date
     setShowNewGrade(null)
   }
 
@@ -276,6 +376,7 @@ export function GradeTool() {
         grade: gradeNum,
         weight: Number.parseFloat(gradeForm.weight) || 1,
         category: gradeForm.category,
+        date: format(gradeForm.date, "yyyy-MM-dd"), // Update date as well
       })
       .eq("id", gradeId)
       .select()
@@ -289,7 +390,7 @@ export function GradeTool() {
       setGrades(grades.map((g) => (g.id === gradeId ? data[0] : g)))
     }
 
-    setGradeForm({ assignment: "", grade: "", weight: "1", category: "Test" })
+    setGradeForm({ assignment: "", grade: "", weight: "1", category: "Test", date: new Date() }) // Reset with today's date
     setEditingGrade(null)
     setShowNewGrade(null)
   }
@@ -336,10 +437,10 @@ export function GradeTool() {
   }
 
   const calculateSubjectPluspoints = (subjectId: string) => {
-    const subjectGrades = getSubjectGrades(subjectId)
-    if (subjectGrades.length === 0) return null
+    const subjectAvg = calculateSubjectAverage(subjectId)
+    if (subjectAvg === null) return null
 
-    return calculateTotalPluspoints(subjectGrades.map((g) => g.grade))
+    return calculatePluspoints(subjectAvg)
   }
 
   const toggleSemester = (id: string) => {
@@ -370,13 +471,14 @@ export function GradeTool() {
       grade: grade.grade.toString(),
       weight: grade.weight.toString(),
       category: grade.category || "Test",
+      date: new Date(grade.date), // Load the grade's date
     })
   }
 
   const cancelEdit = () => {
     setEditingGrade(null)
     setShowNewGrade(null)
-    setGradeForm({ assignment: "", grade: "", weight: "1", category: "Test" })
+    setGradeForm({ assignment: "", grade: "", weight: "1", category: "Test", date: new Date() }) // Reset with today's date
   }
 
   const selectedSystem = GRADING_SYSTEMS[system]
@@ -449,7 +551,7 @@ export function GradeTool() {
         <div className="p-4 bg-muted/30 rounded-lg border border-border/40">
           <Label className="text-sm font-medium mb-2 block">Grading System</Label>
           <Select value={system} onValueChange={(value) => setSystem(value as keyof typeof GRADING_SYSTEMS)}>
-            <SelectTrigger className="w-full h-10">
+            <SelectTrigger className="w-full h-10 cursor-pointer">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -468,7 +570,7 @@ export function GradeTool() {
             Display Mode
           </Label>
           <Select value={displayMode} onValueChange={(value) => setDisplayMode(value as "pluspoints" | "average")}>
-            <SelectTrigger className="w-full h-10">
+            <SelectTrigger className="w-full h-10 cursor-pointer">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -482,15 +584,16 @@ export function GradeTool() {
       {/* Add Semester Button */}
       <div className="mb-6">
         {!showNewSemester ? (
-          <Button onClick={() => setShowNewSemester(true)} className="w-full" variant="outline">
+          <Button onClick={() => setShowNewSemester(true)} className="w-full cursor-pointer" variant="outline">
             <Plus className="h-4 w-4 mr-2" />
             Add Semester
           </Button>
         ) : (
-          <div className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 border-2 border-blue-200 dark:border-blue-800 rounded-xl">
+          // Add Semester Form - Update to use DatePicker
+          <div className="p-4 bg-muted/30 border border-border/40 rounded-xl">
             <h3 className="font-semibold mb-3 flex items-center gap-2">
               <Layers className="h-4 w-4" />
-              New Semester
+              {editingSemester ? "Edit Semester" : "New Semester"}
             </h3>
             <div className="space-y-3">
               <div>
@@ -505,54 +608,28 @@ export function GradeTool() {
                   className="h-10"
                 />
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label className="text-xs mb-1.5 block">Start Date (optional)</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-full h-10 justify-start text-left font-normal",
-                          !newSemesterStart && "text-muted-foreground",
-                        )}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {newSemesterStart ? format(newSemesterStart, "PPP") : "Pick a date"}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar mode="single" selected={newSemesterStart} onSelect={setNewSemesterStart} initialFocus />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-                <div>
-                  <Label className="text-xs mb-1.5 block">End Date (optional)</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-full h-10 justify-start text-left font-normal",
-                          !newSemesterEnd && "text-muted-foreground",
-                        )}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {newSemesterEnd ? format(newSemesterEnd, "PPP") : "Pick a date"}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar mode="single" selected={newSemesterEnd} onSelect={setNewSemesterEnd} initialFocus />
-                    </PopoverContent>
-                  </Popover>
-                </div>
+              <div>
+                <Label className="text-xs mb-1.5 block">Start Date (optional)</Label>
+                <DatePicker date={newSemesterStart} onSelect={setNewSemesterStart} placeholder="Select start date" />
+              </div>
+              <div>
+                <Label className="text-xs mb-1.5 block">End Date (optional)</Label>
+                <DatePicker date={newSemesterEnd} onSelect={setNewSemesterEnd} placeholder="Select end date" />
               </div>
               <div className="flex gap-2">
-                <Button onClick={addSemester} className="flex-1" disabled={!newSemesterName.trim()}>
+                <Button
+                  onClick={() => (editingSemester ? updateSemester(editingSemester) : addSemester())}
+                  className="flex-1 cursor-pointer"
+                  disabled={!newSemesterName.trim()}
+                >
                   <Check className="h-4 w-4 mr-2" />
-                  Create
+                  {editingSemester ? "Update" : "Create"}
                 </Button>
-                <Button onClick={() => setShowNewSemester(false)} variant="outline">
+                <Button
+                  onClick={() => (editingSemester ? cancelEditSemester() : setShowNewSemester(false))}
+                  variant="outline"
+                  className="cursor-pointer"
+                >
                   <X className="h-4 w-4" />
                 </Button>
               </div>
@@ -579,12 +656,12 @@ export function GradeTool() {
             return (
               <div key={semester.id} className="border-2 border-border/60 rounded-xl overflow-hidden">
                 {/* Semester Header */}
-                <div
-                  className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 cursor-pointer hover:from-blue-100 hover:to-indigo-100 dark:hover:from-blue-950/40 dark:hover:to-indigo-950/40 transition-colors"
-                  onClick={() => toggleSemester(semester.id)}
-                >
+                <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 group">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
+                    <div
+                      className="flex items-center gap-3 flex-1 cursor-pointer"
+                      onClick={() => toggleSemester(semester.id)}
+                    >
                       {isExpanded ? (
                         <ChevronDown className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                       ) : (
@@ -598,7 +675,7 @@ export function GradeTool() {
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
                       {semesterAvg !== null && (
                         <div className="text-right">
                           <div className={`text-2xl font-bold ${getGradeQualityColor(semesterAvg, system)}`}>
@@ -613,6 +690,30 @@ export function GradeTool() {
                         </div>
                       )}
                       <Badge variant="secondary">{semesterSubjects.length} subjects</Badge>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          startEditSemester(semester)
+                        }}
+                        className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-blue-100 dark:hover:bg-blue-900/30 cursor-pointer"
+                      >
+                        <Pencil className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          if (confirm(`Delete semester "${semester.name}" and all its subjects and grades?`)) {
+                            deleteSemester(semester.id)
+                          }
+                        }}
+                        className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-100 dark:hover:bg-red-900/30 cursor-pointer"
+                      >
+                        <Trash2 className="h-4 w-4 text-red-600 dark:text-red-400" />
+                      </Button>
                     </div>
                   </div>
                 </div>
@@ -620,18 +721,18 @@ export function GradeTool() {
                 {/* Semester Content */}
                 {isExpanded && (
                   <div className="p-4 bg-background space-y-3">
-                    {/* Add Subject Button */}
-                    {showNewSubject !== semester.id ? (
+                    {showNewSubject !== semester.id && !editingSubject ? (
                       <Button
                         onClick={() => setShowNewSubject(semester.id)}
                         variant="outline"
                         size="sm"
-                        className="w-full"
+                        className="w-full cursor-pointer"
                       >
                         <Plus className="h-3 w-3 mr-2" />
                         Add Subject
                       </Button>
-                    ) : (
+                    ) : showNewSubject === semester.id ||
+                      (editingSubject && subjects.find((s) => s.id === editingSubject)?.semester_id === semester.id) ? (
                       <div className="p-3 bg-muted/30 rounded-lg border border-border/40">
                         <div className="flex gap-2">
                           <Input
@@ -640,18 +741,30 @@ export function GradeTool() {
                             placeholder="Subject name (e.g., Mathematics)"
                             className="h-9"
                             onKeyDown={(e) => {
-                              if (e.key === "Enter") addSubject(semester.id)
+                              if (e.key === "Enter") {
+                                editingSubject ? updateSubject(editingSubject) : addSubject(semester.id)
+                              }
                             }}
                           />
-                          <Button onClick={() => addSubject(semester.id)} size="sm" disabled={!newSubjectName.trim()}>
+                          <Button
+                            onClick={() => (editingSubject ? updateSubject(editingSubject) : addSubject(semester.id))}
+                            size="sm"
+                            disabled={!newSubjectName.trim()}
+                            className="cursor-pointer"
+                          >
                             <Check className="h-3 w-3" />
                           </Button>
-                          <Button onClick={() => setShowNewSubject(null)} size="sm" variant="outline">
+                          <Button
+                            onClick={() => (editingSubject ? cancelEditSubject() : setShowNewSubject(null))}
+                            size="sm"
+                            variant="outline"
+                            className="cursor-pointer"
+                          >
                             <X className="h-3 w-3" />
                           </Button>
                         </div>
                       </div>
-                    )}
+                    ) : null}
 
                     {/* Subjects List */}
                     {semesterSubjects.length === 0 ? (
@@ -670,23 +783,23 @@ export function GradeTool() {
                           return (
                             <div key={subject.id} className="border border-border/40 rounded-lg overflow-hidden">
                               {/* Subject Header */}
-                              <div
-                                className="p-3 bg-muted/20 cursor-pointer hover:bg-muted/40 transition-colors"
-                                onClick={() => toggleSubject(subject.id)}
-                              >
+                              <div className="p-3 bg-muted/20 group">
                                 <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-2">
+                                  <div
+                                    className="flex items-center gap-2 flex-1 cursor-pointer"
+                                    onClick={() => toggleSubject(subject.id)}
+                                  >
                                     {isSubjectExpanded ? (
                                       <ChevronDown className="h-4 w-4" />
                                     ) : (
                                       <ChevronRight className="h-4 w-4" />
                                     )}
-                                    <span className="font-medium">{subject.name}</span>
+                                    <span className="font-medium cursor pointer">{subject.name}</span>
                                     <Badge variant="outline" className="text-xs">
                                       {subjectGrades.length} grades
                                     </Badge>
                                   </div>
-                                  <div className="flex items-center gap-3">
+                                  <div className="flex items-center gap-2">
                                     {subjectAvg !== null && (
                                       <div className="text-right">
                                         <div
@@ -706,6 +819,30 @@ export function GradeTool() {
                                           )}
                                       </div>
                                     )}
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        startEditSubject(subject)
+                                      }}
+                                      className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-blue-100 dark:hover:bg-blue-900/30 cursor-pointer"
+                                    >
+                                      <Pencil className="h-3 w-3 text-blue-600 dark:text-blue-400" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        if (confirm(`Delete subject "${subject.name}" and all its grades?`)) {
+                                          deleteSubject(subject.id)
+                                        }
+                                      }}
+                                      className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-100 dark:hover:bg-red-900/30 cursor-pointer"
+                                    >
+                                      <Trash2 className="h-3 w-3 text-red-600 dark:text-red-400" />
+                                    </Button>
                                   </div>
                                 </div>
                               </div>
@@ -719,13 +856,13 @@ export function GradeTool() {
                                       onClick={() => setShowNewGrade(subject.id)}
                                       variant="outline"
                                       size="sm"
-                                      className="w-full"
+                                      className="w-full cursor-pointer"
                                     >
                                       <Plus className="h-3 w-3 mr-2" />
                                       Add Grade
                                     </Button>
                                   ) : (
-                                    <div className="p-3 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20 border border-purple-200 dark:border-purple-800 rounded-lg">
+                                    <div className="p-3 bg-muted/30 border border-border/40 rounded-lg">
                                       <div className="space-y-2">
                                         <div className="grid grid-cols-2 gap-2">
                                           <div>
@@ -784,6 +921,16 @@ export function GradeTool() {
                                             </Select>
                                           </div>
                                         </div>
+                                        <div>
+                                          <Label className="text-xs mb-1 block">Date</Label>
+                                          <DatePicker
+                                            date={gradeForm.date}
+                                            onSelect={(date) =>
+                                              setGradeForm({ ...gradeForm, date: date || new Date() })
+                                            }
+                                            placeholder="Select date"
+                                          />
+                                        </div>
                                         <div className="flex gap-2">
                                           <Button
                                             onClick={() =>
@@ -792,7 +939,7 @@ export function GradeTool() {
                                                 : addGrade(subject.id)
                                             }
                                             size="sm"
-                                            className="flex-1"
+                                            className="flex-1 cursor-pointer"
                                             disabled={!gradeForm.grade.trim()}
                                           >
                                             <Check className="h-3 w-3 mr-1" />
@@ -802,6 +949,7 @@ export function GradeTool() {
                                             onClick={() => (editingGrade ? cancelEdit() : setShowNewGrade(null))}
                                             size="sm"
                                             variant="outline"
+                                            className="cursor-pointer"
                                           >
                                             <X className="h-3 w-3" />
                                           </Button>
@@ -821,7 +969,7 @@ export function GradeTool() {
                                       {subjectGrades.map((grade) => (
                                         <div
                                           key={grade.id}
-                                          className="flex items-center justify-between p-2 bg-muted/20 rounded hover:bg-muted/40 transition-colors group"
+                                          className="flex items-center justify-between p-2 bg-muted/20 rounded hover:bg-muted/40 transition-colors group cursor-pointer"
                                         >
                                           <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-2 flex-wrap">
@@ -850,19 +998,11 @@ export function GradeTool() {
                                             >
                                               {grade.grade.toFixed(1)}
                                             </div>
-                                            {displayMode === "pluspoints" && system === "switzerland" && (
-                                              <div
-                                                className={`text-xs font-medium px-2 py-1 rounded ${getPluspointsBadgeColor(calculatePluspoints(grade.grade))}`}
-                                              >
-                                                {calculatePluspoints(grade.grade) >= 0 ? "+" : ""}
-                                                {calculatePluspoints(grade.grade).toFixed(1)}
-                                              </div>
-                                            )}
                                             <Button
                                               variant="ghost"
                                               size="icon"
                                               onClick={() => startEditGrade(grade)}
-                                              className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-blue-100 dark:hover:bg-blue-900/30"
+                                              className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-blue-100 dark:hover:bg-blue-900/30 cursor-pointer"
                                             >
                                               <Pencil className="h-3 w-3 text-blue-600 dark:text-blue-400" />
                                             </Button>
@@ -870,7 +1010,7 @@ export function GradeTool() {
                                               variant="ghost"
                                               size="icon"
                                               onClick={() => deleteGrade(grade.id)}
-                                              className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-100 dark:hover:bg-red-900/30"
+                                              className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-100 dark:hover:bg-red-900/30 cursor-pointer"
                                             >
                                               <X className="h-3 w-3 text-red-600 dark:text-red-400" />
                                             </Button>

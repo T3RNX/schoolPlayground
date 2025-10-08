@@ -40,48 +40,50 @@
 }
 
 .dark {
-  /* 🌙 Modern Neutral Dark Theme — balanced, soft contrast */
-  --background: oklch(0.28 0.015 270); /* base background (~#2b2d31) */
-  --foreground: oklch(0.92 0.01 270); /* light gray text */
+  /* 🌙 Modern Neutral Dark Theme — better contrast & layering */
+  --background: oklch(0.22 0.015 270); /* darker base (~#1e1f22) */
+  --foreground: oklch(0.93 0.01 270); /* bright text */
 
-  /* Cards & Popovers */
-  --card: oklch(0.31 0.015 270); /* slightly lighter than bg for separation */
-  --card-foreground: oklch(0.92 0.01 270);
+  /* Cards & Popovers — separated but cohesive */
+  --card: oklch(0.29 0.015 270); /* visible lift from background */
+  --card-foreground: oklch(0.93 0.01 270);
 
-  --popover: oklch(0.33 0.015 270);
-  --popover-foreground: oklch(0.93 0.01 270);
+  --popover: oklch(0.31 0.015 270);
+  --popover-foreground: oklch(0.94 0.01 270);
 
   /* Primary/Accent colors */
   --primary: oklch(0.68 0.08 265);
-  --primary-foreground: oklch(0.2 0.015 270);
+  --primary-foreground: oklch(0.15 0.02 270);
 
-  --secondary: oklch(0.36 0.02 270);
-  --secondary-foreground: oklch(0.88 0.01 270);
+  --secondary: oklch(0.42 0.02 270);
+  --secondary-foreground: oklch(0.9 0.01 270);
 
-  --muted: oklch(0.33 0.01 270);
-  --muted-foreground: oklch(0.72 0.015 270);
+  /* Muted content (subtle gray) */
+  --muted: oklch(0.36 0.015 270); /* lighter for visible contrast */
+  --muted-foreground: oklch(0.75 0.015 270);
 
-  --accent: oklch(0.4 0.02 270);
-  --accent-foreground: oklch(0.94 0.01 270);
+  /* Accent color for soft highlights */
+  --accent: oklch(0.48 0.04 270);
+  --accent-foreground: oklch(0.96 0.01 270);
 
   /* Destructive tone (soft coral red) */
-  --destructive: oklch(0.58 0.16 25);
-  --destructive-foreground: oklch(0.95 0.01 270);
+  --destructive: oklch(0.56 0.15 25);
+  --destructive-foreground: oklch(0.96 0.01 270);
 
-  /* Borders and highlights */
+  /* Borders, inputs, rings */
   --border: oklch(0.38 0.01 270);
-  --input: oklch(0.38 0.01 270);
-  --ring: oklch(0.6 0.04 270);
+  --input: oklch(0.19 0.015 270); /* darker → recessed effect */
+  --ring: oklch(0.58 0.04 270);
 
-  /* Charts (harmonized tones) */
-  --chart-1: oklch(0.65 0.18 265);
-  --chart-2: oklch(0.68 0.14 180);
-  --chart-3: oklch(0.73 0.16 85);
-  --chart-4: oklch(0.62 0.16 330);
-  --chart-5: oklch(0.68 0.18 25);
+  /* Charts (slightly lightened for visibility) */
+  --chart-1: oklch(0.66 0.18 265);
+  --chart-2: oklch(0.7 0.14 180);
+  --chart-3: oklch(0.74 0.16 85);
+  --chart-4: oklch(0.63 0.16 330);
+  --chart-5: oklch(0.7 0.18 25);
 
   /* Sidebar tone */
-  --sidebar: oklch(0.3 0.015 270);
+  --sidebar: oklch(0.27 0.015 270);
   --sidebar-foreground: oklch(0.9 0.01 270);
   --sidebar-primary: oklch(0.68 0.08 265);
   --sidebar-primary-foreground: oklch(0.18 0.01 270);
@@ -134,9 +136,11 @@
 }
 
 @layer base {
+  /* 🌍 Global base styles — required for Tailwind theme binding */
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }

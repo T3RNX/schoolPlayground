@@ -23,7 +23,7 @@ import {
   Replace,
   LogIn,
   UserPlus,
-  TrendingUp,
+  Notebook,
   History,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -137,7 +137,7 @@ export default function DashboardLayout({
           <nav className="space-y-1 p-2">
             <NavItem href="/" icon={Home} label="Dashboard" onNavigate={closeSidebar} />
             <NavItem href="/grade-calculator" icon={Calculator} label="Grade Calculator" onNavigate={closeSidebar} />
-            <NavItem href="/grade-tool" icon={TrendingUp} label="Grade Tool" onNavigate={closeSidebar} />
+            <NavItem href="/grade-tool" icon={Notebook} label="Grade Tool" onNavigate={closeSidebar} />
             <NavItem href="/grade-history" icon={History} label="Grade History" onNavigate={closeSidebar} />
             <NavItem href="/eszett-converter" icon={Replace} label="Eszett Converter" onNavigate={closeSidebar} />
             <NavItem href="/homework" icon={ClipboardList} label="Homework Planner" onNavigate={closeSidebar} />
@@ -166,7 +166,7 @@ export default function DashboardLayout({
         <nav className="space-y-1 p-2">
           <NavItem href="/" icon={Home} label="Dashboard" />
           <NavItem href="/grade-calculator" icon={Calculator} label="Grade Calculator" />
-          <NavItem href="/grade-tool" icon={TrendingUp} label="Grade Tool" />
+          <NavItem href="/grade-tool" icon={Notebook} label="Grade Tool" />
           <NavItem href="/grade-history" icon={History} label="Grade History" />
           <NavItem href="/eszett-converter" icon={Replace} label="Eszett Converter" />
           <NavItem href="/homework" icon={ClipboardList} label="Homework Planner" />

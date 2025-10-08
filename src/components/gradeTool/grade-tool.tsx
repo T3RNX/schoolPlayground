@@ -21,6 +21,13 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { createBrowserClient } from "@/lib/supabase/client"
 import Link from "next/link"
 import { getGradeQualityColor, getGradeQualityBadgeColor } from "@/lib/grade-colors"
@@ -443,17 +450,18 @@ export function GradeTool() {
       <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="p-4 bg-muted/30 rounded-lg border border-border/40">
           <Label className="text-sm font-medium mb-2 block">Grading System</Label>
-          <select
-            value={system}
-            onChange={(e) => setSystem(e.target.value as keyof typeof GRADING_SYSTEMS)}
-            className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm cursor-pointer"
-          >
-            {Object.entries(GRADING_SYSTEMS).map(([key, sys]) => (
-              <option key={key} value={key}>
-                {sys.name}
-              </option>
-            ))}
-          </select>
+          <Select value={system} onValueChange={(value) => setSystem(value as keyof typeof GRADING_SYSTEMS)}>
+            <SelectTrigger className="w-full h-10">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.entries(GRADING_SYSTEMS).map(([key, sys]) => (
+                <SelectItem key={key} value={key}>
+                  {sys.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="p-4 bg-muted/30 rounded-lg border border-border/40">
@@ -461,14 +469,15 @@ export function GradeTool() {
             <Settings className="h-4 w-4" />
             Display Mode
           </Label>
-          <select
-            value={displayMode}
-            onChange={(e) => setDisplayMode(e.target.value as "pluspoints" | "average")}
-            className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm cursor-pointer"
-          >
-            <option value="average">Average Grade</option>
-            <option value="pluspoints">Pluspoints (Swiss System)</option>
-          </select>
+          <Select value={displayMode} onValueChange={(value) => setDisplayMode(value as "pluspoints" | "average")}>
+            <SelectTrigger className="w-full h-10">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="average">Average Grade</SelectItem>
+              <SelectItem value="pluspoints">Pluspoints (Swiss System)</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
@@ -744,17 +753,21 @@ export function GradeTool() {
                                           </div>
                                           <div>
                                             <Label className="text-xs mb-1 block">Category</Label>
-                                            <select
+                                            <Select
                                               value={gradeForm.category}
-                                              onChange={(e) => setGradeForm({ ...gradeForm, category: e.target.value })}
-                                              className="w-full h-9 rounded-md border border-input bg-background px-2 text-sm"
+                                              onValueChange={(value) => setGradeForm({ ...gradeForm, category: value })}
                                             >
-                                              {GRADE_CATEGORIES.map((cat) => (
-                                                <option key={cat} value={cat}>
-                                                  {cat}
-                                                </option>
-                                              ))}
-                                            </select>
+                                              <SelectTrigger className="w-full h-9">
+                                                <SelectValue />
+                                              </SelectTrigger>
+                                              <SelectContent>
+                                                {GRADE_CATEGORIES.map((cat) => (
+                                                  <SelectItem key={cat} value={cat}>
+                                                    {cat}
+                                                  </SelectItem>
+                                                ))}
+                                              </SelectContent>
+                                            </Select>
                                           </div>
                                         </div>
                                         <div className="flex gap-2">

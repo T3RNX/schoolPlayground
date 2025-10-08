@@ -19,6 +19,13 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
   roundingMethods,
   calculateStepwiseGrade,
   defaultFormula,
@@ -359,18 +366,18 @@ export function GradeCalculator() {
           <Label htmlFor="grading-system" className="text-sm font-medium mb-2 block">
             Select Your Grading System
           </Label>
-          <select
-            id="grading-system"
-            value={system}
-            onChange={(e) => handleSystemChange(e.target.value)}
-            className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-          >
-            {Object.entries(gradingSystems).map(([key, sys]) => (
-              <option key={key} value={key}>
-                {sys.name} - {sys.description}
-              </option>
-            ))}
-          </select>
+          <Select value={system} onValueChange={handleSystemChange}>
+            <SelectTrigger className="w-full h-10">
+              <SelectValue placeholder="Select a grading system" />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.entries(gradingSystems).map(([key, sys]) => (
+                <SelectItem key={key} value={key}>
+                  {sys.name} - {sys.description}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="mb-6">
@@ -684,18 +691,18 @@ export function GradeCalculator() {
                 <Label htmlFor="rounding-method" className="mb-2 block text-xs">
                   Rounding Method
                 </Label>
-                <select
-                  id="rounding-method"
-                  value={roundingMethod}
-                  onChange={(e) => setRoundingMethod(e.target.value)}
-                  className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm"
-                >
-                  {Object.entries(roundingMethods).map(([key, method]) => (
-                    <option key={key} value={key}>
-                      {method.name}
-                    </option>
-                  ))}
-                </select>
+                <Select value={roundingMethod} onValueChange={setRoundingMethod}>
+                  <SelectTrigger className="w-full h-9">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(roundingMethods).map(([key, method]) => (
+                      <SelectItem key={key} value={key}>
+                        {method.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               {roundingMethod === "stepRounding" ? (
@@ -703,20 +710,20 @@ export function GradeCalculator() {
                   <Label htmlFor="rounding-step" className="mb-2 block text-xs">
                     Rounding Step
                   </Label>
-                  <select
-                    id="rounding-step"
-                    value={roundingStep.toString()}
-                    onChange={(e) => setRoundingStep(Number(e.target.value))}
-                    className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm"
-                  >
-                    <option value="1">1.0</option>
-                    <option value="0.5">0.5</option>
-                    <option value="0.25">0.25</option>
-                    <option value="0.2">0.2</option>
-                    <option value="0.1">0.1</option>
-                    <option value="0.05">0.05</option>
-                    <option value="0.01">0.01</option>
-                  </select>
+                  <Select value={roundingStep.toString()} onValueChange={(value) => setRoundingStep(Number(value))}>
+                    <SelectTrigger className="w-full h-9">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">1.0</SelectItem>
+                      <SelectItem value="0.5">0.5</SelectItem>
+                      <SelectItem value="0.25">0.25</SelectItem>
+                      <SelectItem value="0.2">0.2</SelectItem>
+                      <SelectItem value="0.1">0.1</SelectItem>
+                      <SelectItem value="0.05">0.05</SelectItem>
+                      <SelectItem value="0.01">0.01</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               ) : (
                 <div>
@@ -741,18 +748,18 @@ export function GradeCalculator() {
               <Label htmlFor="grading-method" className="mb-2 block text-xs">
                 Grading Method
               </Label>
-              <select
-                id="grading-method"
-                value={gradingMethod}
-                onChange={(e) => setGradingMethod(e.target.value)}
-                className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm"
-              >
-                {Object.entries(gradingMethods).map(([key, method]) => (
-                  <option key={key} value={key}>
-                    {method.name}
-                  </option>
-                ))}
-              </select>
+              <Select value={gradingMethod} onValueChange={setGradingMethod}>
+                <SelectTrigger className="w-full h-9">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(gradingMethods).map(([key, method]) => (
+                    <SelectItem key={key} value={key}>
+                      {method.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             {gradingMethod === "custom" && (

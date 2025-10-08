@@ -115,19 +115,19 @@ export default function Home() {
       link: "/focus-timer",
       category: "productivity",
     },
-    {
-      id: "grammar-checker",
-      title: "Grammar Checker",
-      description:
-        "Check your writing for grammar, spelling, punctuation, and style issues",
-      icon: Wand2,
-      color: "bg-blue-200 dark:bg-blue-900/40",
-      iconBg: "bg-blue-500",
-      iconColor: "text-white",
-      textColor: "text-blue-950 dark:text-white",
-      link: "/grammar-checker",
-      category: "productivity",
-    },
+    // {
+    //   id: "grammar-checker",
+    //   title: "Grammar Checker",
+    //   description:
+    //     "Check your writing for grammar, spelling, punctuation, and style issues",
+    //   icon: Wand2,
+    //   color: "bg-blue-200 dark:bg-blue-900/40",
+    //   iconBg: "bg-blue-500",
+    //   iconColor: "text-white",
+    //   textColor: "text-blue-950 dark:text-white",
+    //   link: "/grammar-checker",
+    //   category: "productivity",
+    // },
     {
       id: "homework-planner",
       title: "Homework Planner",

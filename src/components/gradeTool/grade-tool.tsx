@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import {
   BookOpen,
   Plus,
-  Calendar,
+  CalendarIcon,
   Award,
   Check,
   X,
@@ -21,13 +21,9 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Calendar } from "@/components/ui/calendar"
 import { createBrowserClient } from "@/lib/supabase/client"
 import Link from "next/link"
 import { getGradeQualityColor, getGradeQualityBadgeColor } from "@/lib/grade-colors"
@@ -37,13 +33,15 @@ import {
   getPluspointsColor,
   getPluspointsBadgeColor,
 } from "@/lib/pluspoints"
+import { cn } from "@/lib/utils"
+import { format } from "date-fns"
 
 type Semester = {
   id: string
   user_id: string
   name: string
-  start_date: string
-  end_date: string
+  start_date: string | null
+  end_date: string | null
 }
 
 type Subject = {
@@ -94,8 +92,8 @@ export function GradeTool() {
   const [showNewGrade, setShowNewGrade] = useState<string | null>(null)
 
   const [newSemesterName, setNewSemesterName] = useState("")
-  const [newSemesterStart, setNewSemesterStart] = useState("")
-  const [newSemesterEnd, setNewSemesterEnd] = useState("")
+  const [newSemesterStart, setNewSemesterStart] = useState<Date | undefined>(undefined)
+  const [newSemesterEnd, setNewSemesterEnd] = useState<Date | undefined>(undefined)
   const [newSubjectName, setNewSubjectName] = useState("")
   const [gradeForm, setGradeForm] = useState({
     assignment: "",
@@ -166,7 +164,7 @@ export function GradeTool() {
   }, [displayMode, isClient])
 
   const addSemester = async () => {
-    if (!newSemesterName.trim() || !newSemesterStart || !newSemesterEnd) return
+    if (!newSemesterName.trim()) return
 
     const { data, error } = await supabase
       .from("semesters")
@@ -174,8 +172,8 @@ export function GradeTool() {
         {
           user_id: user.id,
           name: newSemesterName.trim(),
-          start_date: newSemesterStart,
-          end_date: newSemesterEnd,
+          start_date: newSemesterStart ? format(newSemesterStart, "yyyy-MM-dd") : null,
+          end_date: newSemesterEnd ? format(newSemesterEnd, "yyyy-MM-dd") : null,
         },
       ])
       .select()
@@ -191,8 +189,8 @@ export function GradeTool() {
     }
 
     setNewSemesterName("")
-    setNewSemesterStart("")
-    setNewSemesterEnd("")
+    setNewSemesterStart(undefined)
+    setNewSemesterEnd(undefined)
     setShowNewSemester(false)
   }
 
@@ -497,7 +495,7 @@ export function GradeTool() {
             <div className="space-y-3">
               <div>
                 <Label htmlFor="semester-name" className="text-xs mb-1.5 block">
-                  Semester Name
+                  Semester Name *
                 </Label>
                 <Input
                   id="semester-name"
@@ -509,28 +507,44 @@ export function GradeTool() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <Label htmlFor="start-date" className="text-xs mb-1.5 block">
-                    Start Date
-                  </Label>
-                  <Input
-                    id="start-date"
-                    type="date"
-                    value={newSemesterStart}
-                    onChange={(e) => setNewSemesterStart(e.target.value)}
-                    className="h-10"
-                  />
+                  <Label className="text-xs mb-1.5 block">Start Date (optional)</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full h-10 justify-start text-left font-normal",
+                          !newSemesterStart && "text-muted-foreground",
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {newSemesterStart ? format(newSemesterStart, "PPP") : "Pick a date"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar mode="single" selected={newSemesterStart} onSelect={setNewSemesterStart} initialFocus />
+                    </PopoverContent>
+                  </Popover>
                 </div>
                 <div>
-                  <Label htmlFor="end-date" className="text-xs mb-1.5 block">
-                    End Date
-                  </Label>
-                  <Input
-                    id="end-date"
-                    type="date"
-                    value={newSemesterEnd}
-                    onChange={(e) => setNewSemesterEnd(e.target.value)}
-                    className="h-10"
-                  />
+                  <Label className="text-xs mb-1.5 block">End Date (optional)</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full h-10 justify-start text-left font-normal",
+                          !newSemesterEnd && "text-muted-foreground",
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {newSemesterEnd ? format(newSemesterEnd, "PPP") : "Pick a date"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar mode="single" selected={newSemesterEnd} onSelect={setNewSemesterEnd} initialFocus />
+                    </PopoverContent>
+                  </Popover>
                 </div>
               </div>
               <div className="flex gap-2">
@@ -579,8 +593,8 @@ export function GradeTool() {
                       <div>
                         <h3 className="font-semibold text-lg">{semester.name}</h3>
                         <p className="text-xs text-muted-foreground">
-                          {new Date(semester.start_date).toLocaleDateString()} -{" "}
-                          {new Date(semester.end_date).toLocaleDateString()}
+                          {semester.start_date && new Date(semester.start_date).toLocaleDateString()} -{" "}
+                          {semester.end_date && new Date(semester.end_date).toLocaleDateString()}
                         </p>
                       </div>
                     </div>
@@ -731,7 +745,7 @@ export function GradeTool() {
                                               type="number"
                                               min={selectedSystem.min}
                                               max={selectedSystem.max}
-                                              step="0.1"
+                                              step="0.01"
                                               value={gradeForm.grade}
                                               onChange={(e) => setGradeForm({ ...gradeForm, grade: e.target.value })}
                                               placeholder={`${selectedSystem.min}-${selectedSystem.max}`}
@@ -826,7 +840,7 @@ export function GradeTool() {
                                               )}
                                             </div>
                                             <div className="text-xs text-muted-foreground flex items-center gap-1">
-                                              <Calendar className="h-3 w-3" />
+                                              <CalendarIcon className="h-3 w-3" />
                                               {new Date(grade.date).toLocaleDateString()}
                                             </div>
                                           </div>

@@ -73,14 +73,12 @@ export function GradePredictor() {
       return
     }
 
-    // Calculate total points needed
     const totalTests = completed + remaining
     const totalPointsNeeded = target * totalTests
     const currentTotalPoints = current * completed
     const pointsNeeded = totalPointsNeeded - currentTotalPoints
     const requiredGrade = pointsNeeded / remaining
 
-    // Check if achievable
     const isAchievable =
       system === "germany"
         ? requiredGrade >= selectedSystem.min && requiredGrade <= selectedSystem.max
@@ -281,17 +279,17 @@ export function GradePredictor() {
               <AlertCircle className="h-6 w-6 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-1" />
             )}
             <div className="flex-1">
-              <h3 className="font-semibold text-lg mb-2">
+              <h3 className="font-semibold text-lg mb-2 text-green-900 dark:text-green-100">
                 {result.isAchievable ? "Goal is Achievable!" : "Goal Status"}
               </h3>
-              <p className="text-sm mb-4">{result.message}</p>
+              <p className="text-sm mb-4 text-green-800 dark:text-green-200">{result.message}</p>
             </div>
           </div>
 
           {result.isAchievable && (
             <div className="bg-white/50 dark:bg-black/20 p-4 rounded-lg">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Required Average Grade:</span>
+                <span className="text-sm font-medium text-foreground">Required Average Grade:</span>
                 <div
                   className={`text-2xl font-bold px-4 py-2 rounded-md border ${getGradeQualityBadgeColor(result.requiredGrade, system)}`}
                 >

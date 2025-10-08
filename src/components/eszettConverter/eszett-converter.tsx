@@ -184,7 +184,6 @@ export function EszettConverter({
       "Der Fuß des Berges ist sehr steil und weiß.",
     ]
 
-    // Use a more secure random selection if available, otherwise fall back to Math.random
     let index
     if (isClient && window.crypto && window.crypto.getRandomValues) {
       const array = new Uint32Array(1)
@@ -333,7 +332,7 @@ export function EszettConverter({
                 variant="outline"
                 size="sm"
                 onClick={loadSampleText}
-                className="text-xs hover:bg-muted/50 transition-colors"
+                className="text-xs hover:bg-muted/50 transition-colors bg-transparent"
               >
                 <Zap className="h-3 w-3 mr-1" />
                 Load Sample
@@ -416,13 +415,15 @@ export function EszettConverter({
                   </p>
                   <ul className="text-sm text-secondary-foreground/80 space-y-1">
                     <li className="flex items-center gap-2">
-                      <span className="bg-yellow-200 dark:bg-yellow-800 px-2 py-0.5 rounded text-xs font-medium">
+                      <span className="bg-yellow-200 dark:bg-yellow-800 px-2 py-0.5 rounded text-xs font-medium text-yellow-900 dark:text-yellow-100">
                         Yellow
                       </span>
                       <span>= detected ß symbols (hover to see replace button)</span>
                     </li>
                     <li className="flex items-center gap-2">
-                      <span className="bg-pink-200 dark:bg-pink-800 px-2 py-0.5 rounded text-xs font-medium">Pink</span>
+                      <span className="bg-pink-200 dark:bg-pink-800 px-2 py-0.5 rounded text-xs font-medium text-pink-900 dark:text-pink-100">
+                        Pink
+                      </span>
                       <span>= selected for replacement</span>
                     </li>
                     <li>• Click any ß to select it, then use &quot;Replace Selected&quot; button</li>
@@ -450,7 +451,7 @@ export function EszettConverter({
                         onClick={undo}
                         disabled={historyIndex <= 0}
                         variant="outline"
-                        className="flex items-center justify-center hover:bg-muted/50 transition-colors"
+                        className="flex items-center justify-center hover:bg-muted/50 transition-colors bg-transparent"
                       >
                         <Undo className="h-4 w-4 mr-2" />
                         Undo
@@ -522,7 +523,7 @@ export function EszettConverter({
                       <Button
                         onClick={copyFormattedText}
                         variant="outline"
-                        className="flex items-center justify-center hover:bg-muted/50 transition-colors"
+                        className="flex items-center justify-center hover:bg-muted/50 transition-colors bg-transparent"
                       >
                         {copied ? (
                           <>

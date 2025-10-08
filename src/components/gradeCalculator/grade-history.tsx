@@ -1,23 +1,40 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Clock, Trash2, Download, TrendingUp, Calendar, Award, BookOpen, BarChart3, LogIn } from "lucide-react"
+import {
+  Clock,
+  Trash2,
+  Download,
+  TrendingUp,
+  Calendar,
+  Award,
+  BookOpen,
+  BarChart3,
+  LogIn,
+  ArrowUpDown,
+} from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { createBrowserClient } from "@/lib/supabase/client"
 import Link from "next/link"
 import { getGradeQualityColor, getGradeQualityBadgeColor } from "@/lib/grade-colors"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 type Grade = {
   id: string
-  subject: string
+  subject_id: string
   assignment: string
   grade: number
   max_grade: number
   weight: number
   date: string
   category?: string
+}
+
+type Subject = {
+  id: string
+  name: string
 }
 
 type HistoryEntry = {
@@ -46,6 +63,7 @@ const formatDate = (date: Date) => {
 export function GradeHistory({ history: externalHistory, onUpdateHistory }: GradeHistoryProps = {}) {
   const [history, setHistory] = useState<HistoryEntry[]>(externalHistory || [])
   const [filterSubject, setFilterSubject] = useState<string>("all")
+  const [sortBy, setSortBy] = useState<"date" | "subject" | "grade">("date")
   const [isClient, setIsClient] = useState(false)
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
@@ -87,21 +105,38 @@ export function GradeHistory({ history: externalHistory, onUpdateHistory }: Grad
   const loadGradesFromDatabase = async () => {
     const savedSystem = localStorage.getItem("schoolPlayground_gradingSystem") || "switzerland"
 
-    const { data, error } = await supabase.from("grades").select("*").order("date", { ascending: false })
+    // Fetch grades and subjects in parallel
+    const [gradesRes, subjectsRes] = await Promise.all([
+      supabase.from("grades").select("*").order("date", { ascending: false }),
+      supabase.from("subjects").select("id, name"),
+    ])
 
-    if (error) {
-      console.error("Failed to load grades:", error)
+    if (gradesRes.error) {
+      console.error("Failed to load grades:", gradesRes.error)
       return
     }
 
-    if (data) {
-      const converted: HistoryEntry[] = data.map((g: Grade) => ({
+    if (subjectsRes.error) {
+      console.error("Failed to load subjects:", subjectsRes.error)
+      return
+    }
+
+    // Create a map of subject_id to subject name
+    const subjectMap = new Map<string, string>()
+    if (subjectsRes.data) {
+      subjectsRes.data.forEach((subject: Subject) => {
+        subjectMap.set(subject.id, subject.name)
+      })
+    }
+
+    if (gradesRes.data) {
+      const converted: HistoryEntry[] = gradesRes.data.map((g: Grade) => ({
         id: g.id,
         date: new Date(g.date),
         system: savedSystem,
         grade: g.grade,
-        details: g.assignment,
-        subject: g.subject,
+        details: g.assignment || "Untitled",
+        subject: subjectMap.get(g.subject_id) || "Unknown Subject",
         maxPoints: g.max_grade,
         achievedPoints: g.grade,
       }))
@@ -152,6 +187,25 @@ export function GradeHistory({ history: externalHistory, onUpdateHistory }: Grad
     return history.filter((entry) => entry.subject === filterSubject)
   }
 
+  const getSortedHistory = () => {
+    const filtered = getFilteredHistory()
+
+    switch (sortBy) {
+      case "date":
+        return [...filtered].sort((a, b) => b.date.getTime() - a.date.getTime())
+      case "subject":
+        return [...filtered].sort((a, b) => {
+          const subjectA = a.subject || ""
+          const subjectB = b.subject || ""
+          return subjectA.localeCompare(subjectB)
+        })
+      case "grade":
+        return [...filtered].sort((a, b) => b.grade - a.grade)
+      default:
+        return filtered
+    }
+  }
+
   const getAverageGrade = () => {
     const filteredHistory = getFilteredHistory()
     if (filteredHistory.length === 0) return null
@@ -198,7 +252,7 @@ export function GradeHistory({ history: externalHistory, onUpdateHistory }: Grad
     URL.revokeObjectURL(url)
   }
 
-  const filteredHistory = getFilteredHistory()
+  const filteredHistory = getSortedHistory()
   const averageGrade = getAverageGrade()
   const trend = getLatestTrend()
   const subjects = getSubjects()
@@ -232,10 +286,10 @@ export function GradeHistory({ history: externalHistory, onUpdateHistory }: Grad
           </div>
         </div>
 
-        <div className="text-center py-16 text-muted-foreground border-2 border-dashed border-border/50 rounded-lg bg-muted/20">
-          <LogIn className="h-16 w-16 mx-auto mb-4 opacity-40" />
-          <p className="text-lg font-medium mb-2">Login Required</p>
-          <p className="text-sm mb-6 max-w-md mx-auto">
+        <div className="text-center py-16 border-2 border-dashed border-border/50 rounded-lg bg-muted/20">
+          <LogIn className="h-16 w-16 mx-auto mb-4 text-muted-foreground/40" />
+          <p className="text-lg font-medium mb-2 text-foreground">Login Required</p>
+          <p className="text-sm mb-6 max-w-md mx-auto text-muted-foreground">
             Please log in to view your grade history. Your grades are securely stored and synced across all your
             devices.
           </p>
@@ -269,11 +323,11 @@ export function GradeHistory({ history: externalHistory, onUpdateHistory }: Grad
           </div>
           {history.length > 0 && (
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" onClick={exportHistory} className="bg-white/50 dark:bg-black/20">
+              <Button variant="outline" size="sm" onClick={exportHistory} className="bg-white/50 dark:bg-white/10">
                 <Download className="h-4 w-4 mr-2" />
                 Export
               </Button>
-              <Button variant="outline" size="sm" onClick={clearHistory} className="bg-white/50 dark:bg-black/20">
+              <Button variant="outline" size="sm" onClick={clearHistory} className="bg-white/50 dark:bg-white/10">
                 <Trash2 className="h-4 w-4 mr-2" />
                 Clear All
               </Button>
@@ -283,10 +337,10 @@ export function GradeHistory({ history: externalHistory, onUpdateHistory }: Grad
       </div>
 
       {history.length === 0 ? (
-        <div className="text-center py-16 text-muted-foreground border-2 border-dashed border-border/50 rounded-lg bg-muted/20">
-          <BookOpen className="h-16 w-16 mx-auto mb-4 opacity-40" />
-          <p className="text-lg font-medium mb-2">No grades yet</p>
-          <p className="text-sm mb-6 max-w-md mx-auto">
+        <div className="text-center py-16 border-2 border-dashed border-border/50 rounded-lg bg-muted/20">
+          <BookOpen className="h-16 w-16 mx-auto mb-4 text-muted-foreground/40" />
+          <p className="text-lg font-medium mb-2 text-foreground">No grades yet</p>
+          <p className="text-sm mb-6 max-w-md mx-auto text-muted-foreground">
             Start tracking your academic progress by entering grades in the Grade Tool. They'll appear here
             automatically.
           </p>
@@ -332,80 +386,89 @@ export function GradeHistory({ history: externalHistory, onUpdateHistory }: Grad
             </Card>
           </div>
 
-          {subjects.length > 0 && (
-            <div className="mb-6 flex flex-wrap items-center gap-2">
-              <span className="text-sm font-medium text-muted-foreground">Filter:</span>
-              <Button
-                variant={filterSubject === "all" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setFilterSubject("all")}
-                className="h-8"
-              >
-                All Subjects
-              </Button>
-              {subjects.map((subject) => (
+          <div className="mb-6 space-y-4">
+            {subjects.length > 0 && (
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-sm font-medium text-foreground">Filter:</span>
                 <Button
-                  key={subject}
-                  variant={filterSubject === subject ? "default" : "outline"}
+                  variant={filterSubject === "all" ? "default" : "outline"}
                   size="sm"
-                  onClick={() => setFilterSubject(subject ?? "")}
+                  onClick={() => setFilterSubject("all")}
                   className="h-8"
                 >
-                  {subject}
+                  All Subjects
                 </Button>
-              ))}
+                {subjects.map((subject) => (
+                  <Button
+                    key={subject}
+                    variant={filterSubject === subject ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setFilterSubject(subject ?? "")}
+                    className="h-8"
+                  >
+                    {subject}
+                  </Button>
+                ))}
+              </div>
+            )}
+
+            <div className="flex items-center gap-2">
+              <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm font-medium text-foreground">Sort by:</span>
+              <Select value={sortBy} onValueChange={(value) => setSortBy(value as "date" | "subject" | "grade")}>
+                <SelectTrigger className="w-[180px] h-8">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="date">Date (Newest First)</SelectItem>
+                  <SelectItem value="subject">Subject (A-Z)</SelectItem>
+                  <SelectItem value="grade">Grade (Highest First)</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-          )}
+          </div>
 
           <div className="space-y-3">
-            {filteredHistory
-              .sort((a, b) => b.date.getTime() - a.date.getTime())
-              .map((entry) => (
-                <div
-                  key={entry.id}
-                  className="p-4 bg-muted/30 border border-border/40 dark:border-border/60 rounded-lg hover:bg-muted/50 transition-all group"
-                >
-                  <div className="flex justify-between items-start gap-4">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-2 flex-wrap">
-                        <p className="font-medium text-base">{entry.details}</p>
-                        {entry.subject && (
-                          <Badge variant="secondary" className="text-xs">
-                            {entry.subject}
-                          </Badge>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-4 text-xs text-muted-foreground flex-wrap">
-                        <span className="flex items-center gap-1">
-                          <Calendar className="h-3 w-3" />
-                          {formatDate(entry.date)}
-                        </span>
-                        {entry.achievedPoints && entry.maxPoints && (
-                          <span className="font-medium">
-                            {entry.achievedPoints}/{entry.maxPoints} pts (
-                            {Math.round((entry.achievedPoints / entry.maxPoints) * 100)}%)
-                          </span>
-                        )}
-                      </div>
+            {filteredHistory.map((entry) => (
+              <div
+                key={entry.id}
+                className="p-4 bg-muted/30 border border-border/40 dark:border-border/60 rounded-lg hover:bg-muted/50 transition-all group"
+              >
+                <div className="flex justify-between items-start gap-4">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-2 flex-wrap">
+                      <p className="font-medium text-base text-foreground">{entry.details}</p>
+                      {entry.subject && (
+                        <Badge variant="secondary" className="text-xs">
+                          {entry.subject}
+                        </Badge>
+                      )}
                     </div>
-                    <div className="flex items-center gap-3 flex-shrink-0">
-                      <div
-                        className={`text-xl font-bold px-3 py-1 rounded-md border ${getGradeBadgeColor(entry.grade, entry.system)}`}
-                      >
-                        {entry.grade}
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => removeEntry(entry.id)}
-                        className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-100 dark:hover:bg-red-900/30"
-                      >
-                        <Trash2 className="h-4 w-4 text-red-600 dark:text-red-400" />
-                      </Button>
+                    <div className="flex items-center gap-4 text-xs text-muted-foreground flex-wrap">
+                      <span className="flex items-center gap-1">
+                        <Calendar className="h-3 w-3" />
+                        {formatDate(entry.date)}
+                      </span>
                     </div>
                   </div>
+                  <div className="flex items-center gap-3 flex-shrink-0">
+                    <div
+                      className={`text-xl font-bold px-3 py-1 rounded-md border ${getGradeBadgeColor(entry.grade, entry.system)}`}
+                    >
+                      {entry.grade}
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => removeEntry(entry.id)}
+                      className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-100 dark:hover:bg-red-900/30"
+                    >
+                      <Trash2 className="h-4 w-4 text-red-600 dark:text-red-400" />
+                    </Button>
+                  </div>
                 </div>
-              ))}
+              </div>
+            ))}
           </div>
         </>
       )}

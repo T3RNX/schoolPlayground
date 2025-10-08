@@ -9,3 +9,5 @@ export function createBrowserClient() {
 
   return client
 }
+export { createClient }
+

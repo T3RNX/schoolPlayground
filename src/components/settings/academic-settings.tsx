@@ -5,14 +5,38 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
-import { GraduationCap, Calculator } from "lucide-react"
+import { GraduationCap, Calculator, LogIn } from "lucide-react"
+import { useProfile } from "@/hooks/use-profile"
+import { Button } from "@/components/ui/button"
+import Link from "next/link"
 
 export function AcademicSettings() {
+  const { user } = useProfile()
   const [defaultGradingSystem, setDefaultGradingSystem] = useState("switzerland")
   const [roundGrades, setRoundGrades] = useState(true)
   const [showPluspoints, setShowPluspoints] = useState(true)
   const [roundingMethod, setRoundingMethod] = useState("half-up")
   const [decimalPlaces, setDecimalPlaces] = useState("2")
+
+  if (!user) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Authentication Required</CardTitle>
+          <CardDescription>Please log in to access academic settings</CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col items-center justify-center py-8 gap-4">
+          <LogIn className="h-12 w-12 text-muted-foreground" />
+          <p className="text-sm text-muted-foreground text-center">
+            You need to be logged in to view and manage your academic settings.
+          </p>
+          <Button asChild>
+            <Link href="/auth/login">Log In</Link>
+          </Button>
+        </CardContent>
+      </Card>
+    )
+  }
 
   return (
     <div className="space-y-6">

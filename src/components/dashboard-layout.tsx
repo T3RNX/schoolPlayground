@@ -15,7 +15,6 @@ import {
   X,
   Settings,
   LogOut,
-  User,
   Home,
   HelpCircle,
   GraduationCap,
@@ -40,6 +39,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { NavItem } from "@/components/nav-item"
 import { createBrowserClient } from "@/lib/supabase/client"
+import { useProfile } from "@/hooks/use-profile"
 
 export default function DashboardLayout({
   children,
@@ -49,11 +49,16 @@ export default function DashboardLayout({
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [isClient, setIsClient] = useState(false)
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createBrowserClient()
 
+  const { avatarUrl, user: profileUser } = useProfile()
+
   useEffect(() => {
+    setIsClient(true)
+
     const checkUser = async () => {
       const {
         data: { user },
@@ -74,10 +79,16 @@ export default function DashboardLayout({
   }, [supabase.auth])
 
   const handleLogout = async () => {
+  try {
     await supabase.auth.signOut()
-    router.push("/")
     router.refresh()
+    setTimeout(() => {
+      router.replace("/auth/login")
+    }, 100)
+  } catch (error) {
+    console.error("Error signing out:", error)
   }
+}
 
   const closeSidebar = useCallback(() => {
     setSidebarOpen(false)
@@ -121,7 +132,7 @@ export default function DashboardLayout({
         >
           <div className="sticky top-0 z-20 flex h-16 items-center justify-between border-b px-4 bg-card">
             <div className="flex items-center gap-2 font-semibold">
-              <GraduationCap className="h-6 w-6 text-primary" />
+              {isClient ? <GraduationCap className="h-6 w-6 text-primary" /> : <div className="h-6 w-6" />}
               <span className="text-lg">SchoolPlayground</span>
             </div>
             <Button
@@ -165,7 +176,7 @@ export default function DashboardLayout({
       <aside className="hidden md:block w-64 border-r bg-card sticky top-0 h-screen overflow-y-auto">
         <div className="flex h-16 items-center border-b px-4">
           <div className="flex items-center gap-2 font-semibold">
-            <GraduationCap className="h-6 w-6 text-primary" />
+            {isClient ? <GraduationCap className="h-6 w-6 text-primary" /> : <div className="h-6 w-6" />}
             <span className="text-lg">SchoolPlayground</span>
           </div>
         </div>
@@ -201,7 +212,11 @@ export default function DashboardLayout({
             <Menu className="h-5 w-5" />
           </Button>
           <div className="relative flex-1 md:max-w-sm">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            {isClient ? (
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            ) : (
+              <div className="absolute left-2.5 top-2.5 h-4 w-4" />
+            )}
             <Input type="search" placeholder="Search tools, resources..." className="w-full pl-8" />
           </div>
           <div className="flex items-center gap-2 ml-auto">
@@ -225,7 +240,7 @@ export default function DashboardLayout({
                     className="rounded-full hover:bg-secondary/50 transition-all hover:scale-105 active:scale-95"
                   >
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src={user.user_metadata?.avatar_url || "/placeholder.svg"} alt={user.email} />
+                      <AvatarImage src={avatarUrl || "/placeholder.svg"} alt={user.email} />
                       <AvatarFallback>{user.email?.charAt(0).toUpperCase() || "U"}</AvatarFallback>
                     </Avatar>
                   </Button>
@@ -238,10 +253,6 @@ export default function DashboardLayout({
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator className="bg-zinc-200 dark:bg-zinc-700" />
-                  <DropdownMenuItem onClick={() => router.push("/profile")}>
-                    <User className="mr-2 h-4 w-4" />
-                    <span>Profile</span>
-                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => router.push("/settings")}>
                     <Settings className="mr-2 h-4 w-4" />
                     <span>Settings</span>

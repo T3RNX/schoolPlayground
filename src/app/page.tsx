@@ -44,6 +44,7 @@ interface Tool {
 export default function Home() {
   const [favorites, setFavorites] = useState<string[]>([])
   const [searchQuery, setSearchQuery] = useState("")
+  const [isClient, setIsClient] = useState(false)
 
   // Load favorites from localStorage
   useEffect(() => {
@@ -51,6 +52,7 @@ export default function Home() {
     if (saved) {
       setFavorites(JSON.parse(saved))
     }
+    setIsClient(true)
   }, [])
 
   // Save favorites to localStorage
@@ -282,7 +284,7 @@ export default function Home() {
               <div className="flex flex-col h-full">
                 <div className={`${tool.color} p-4 flex items-center gap-3`}>
                   <div className={`rounded-full p-2 ${tool.iconBg} ${tool.iconColor}`}>
-                    <tool.icon className="h-5 w-5" />
+                    {isClient ? <tool.icon className="h-5 w-5" /> : <div className="h-5 w-5" />}
                   </div>
                   <h3 className={`font-medium text-base ${tool.textColor}`}>{tool.title}</h3>
                 </div>
@@ -324,7 +326,11 @@ export default function Home() {
 
         {/* Search Bar */}
         <div className="relative max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          {isClient ? (
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          ) : (
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" />
+          )}
           <Input
             type="text"
             placeholder="Search tools..."

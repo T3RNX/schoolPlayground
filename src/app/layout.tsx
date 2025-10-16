@@ -7,6 +7,7 @@ import { Toaster } from "sonner"
 import { Suspense } from "react"
 import { ThemeProvider } from "@/components/ui/theme-provider"
 import ConditionalLayout from "@/components/conditional-layout"
+import { SuppressDarkReaderWarnings } from "@/components/suppress-darkreader-warnings"
 import "./globals.css"
 
 export const metadata: Metadata = {
@@ -24,6 +25,7 @@ export default function RootLayout({
       <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable}`}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <Suspense fallback={null}>
+            <SuppressDarkReaderWarnings />
             <ConditionalLayout>{children}</ConditionalLayout>
             <Analytics />
             <Toaster richColors position="top-right" />

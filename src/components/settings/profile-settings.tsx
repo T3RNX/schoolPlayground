@@ -1,68 +1,93 @@
 "use client"
 
-import type React from "react"
+import React from "react"
 
-import { useState, useEffect } from "react"
+import type { ReactElement } from "react"
+
+import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Upload, Loader2 } from "lucide-react"
+import { Upload, Loader2, Trash2, LogIn } from "lucide-react"
 import { createBrowserClient } from "@/lib/supabase/client"
 import { toast } from "sonner"
+import { useProfile } from "@/hooks/use-profile"
+import Link from "next/link"
 
-export function ProfileSettings() {
+export function ProfileSettings(): ReactElement {
+  const { user, profile, avatarUrl: cachedAvatarUrl, avatarPath: cachedAvatarPath, mutate } = useProfile()
+
   const [loading, setLoading] = useState(false)
   const [uploading, setUploading] = useState(false)
-  const [displayName, setDisplayName] = useState("")
-  const [bio, setBio] = useState("")
-  const [avatarUrl, setAvatarUrl] = useState("")
-  const [user, setUser] = useState<any>(null)
+  const [deleting, setDeleting] = useState(false)
+  const [displayName, setDisplayName] = useState(profile?.display_name || "")
+  const [bio, setBio] = useState(profile?.bio || "")
+  const [avatarUrl, setAvatarUrl] = useState(cachedAvatarUrl)
+  const [avatarPath, setAvatarPath] = useState(cachedAvatarPath)
   const supabase = createBrowserClient()
 
-  const loadProfile = async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-    console.log("[v0] Loaded user profile:", user?.user_metadata)
-    if (user) {
-      setUser(user)
-      setDisplayName(user.user_metadata?.display_name || "")
-      setBio(user.user_metadata?.bio || "")
-      setAvatarUrl(user.user_metadata?.avatar_url || "")
+  React.useEffect(() => {
+    if (profile) {
+      setDisplayName(profile.display_name || "")
+      setBio(profile.bio || "")
     }
+    if (cachedAvatarUrl) {
+      setAvatarUrl(cachedAvatarUrl)
+    }
+    if (cachedAvatarPath) {
+      setAvatarPath(cachedAvatarPath)
+    }
+  }, [profile, cachedAvatarUrl, cachedAvatarPath])
+
+  if (!user) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Authentication Required</CardTitle>
+          <CardDescription>Please log in to access your profile</CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col items-center justify-center py-8 gap-4">
+          <LogIn className="h-12 w-12 text-muted-foreground" />
+          <p className="text-sm text-muted-foreground text-center">
+            You need to be logged in to view and manage your profile.
+          </p>
+          <Button asChild>
+            <Link href="/auth/login">Log In</Link>
+          </Button>
+        </CardContent>
+      </Card>
+    )
   }
-
-  useEffect(() => {
-    loadProfile()
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event: any, session: any) => {
-      if (session?.user) {
-        console.log("[v0] Auth state changed, refreshing profile")
-        loadProfile()
-      }
-    })
-
-    return () => {
-      subscription.unsubscribe()
-    }
-  }, [supabase.auth])
 
   const handleSave = async () => {
     setLoading(true)
     try {
-      const { error } = await supabase.auth.updateUser({
+      if (!user) throw new Error("No user found")
+
+      const { error: profileError } = await supabase.from("profiles").upsert({
+        id: user.id,
+        display_name: displayName,
+        bio: bio,
+        avatar_url: avatarPath || avatarUrl,
+        updated_at: new Date().toISOString(),
+      })
+
+      if (profileError) throw profileError
+
+      const { error: metadataError } = await supabase.auth.updateUser({
         data: {
           display_name: displayName,
           bio: bio,
+          avatar_url: avatarPath || avatarUrl,
         },
       })
 
-      if (error) throw error
+      if (metadataError) throw metadataError
+
+      mutate()
 
       toast.success("Profile updated successfully")
     } catch (error: any) {
@@ -76,13 +101,11 @@ export function ProfileSettings() {
     const file = e.target.files?.[0]
     if (!file) return
 
-    // Validate file size (max 2MB)
     if (file.size > 2 * 1024 * 1024) {
       toast.error("File size must be less than 2MB")
       return
     }
 
-    // Validate file type
     if (!file.type.startsWith("image/")) {
       toast.error("Please upload an image file")
       return
@@ -92,14 +115,14 @@ export function ProfileSettings() {
     try {
       if (!user) throw new Error("No user found")
 
-      // Create a unique file name
+      if (avatarPath) {
+        await supabase.storage.from("avatars").remove([avatarPath])
+      }
+
       const fileExt = file.name.split(".").pop()
       const fileName = `${user.id}-${Date.now()}.${fileExt}`
       const filePath = `${user.id}/${fileName}`
 
-      console.log("[v0] Uploading avatar to:", filePath)
-
-      // Upload file to Supabase Storage
       const { error: uploadError } = await supabase.storage.from("avatars").upload(filePath, file, {
         cacheControl: "3600",
         upsert: false,
@@ -107,32 +130,84 @@ export function ProfileSettings() {
 
       if (uploadError) throw uploadError
 
-      // Get public URL
       const {
         data: { publicUrl },
       } = supabase.storage.from("avatars").getPublicUrl(filePath)
 
-      console.log("[v0] Generated public URL:", publicUrl)
+      const { error: profileError } = await supabase.from("profiles").upsert({
+        id: user.id,
+        avatar_url: filePath,
+        display_name: displayName,
+        bio: bio,
+        updated_at: new Date().toISOString(),
+      })
 
-      // Update user metadata with new avatar URL
-      const { error: updateError } = await supabase.auth.updateUser({
+      if (profileError) throw profileError
+
+      const { error: metadataError } = await supabase.auth.updateUser({
         data: {
-          avatar_url: publicUrl,
+          avatar_url: filePath,
         },
       })
 
-      if (updateError) throw updateError
+      if (metadataError) throw metadataError
 
-      console.log("[v0] Updated user metadata with avatar URL")
+      setAvatarUrl(publicUrl)
+      setAvatarPath(filePath)
 
-      await loadProfile()
+      mutate()
 
       toast.success("Avatar uploaded successfully")
     } catch (error: any) {
-      console.error("[v0] Avatar upload error:", error)
       toast.error(error.message || "Failed to upload avatar")
     } finally {
       setUploading(false)
+    }
+  }
+
+  const handleAvatarDelete = async () => {
+    if (!avatarPath && !avatarUrl) {
+      toast.error("No avatar to delete")
+      return
+    }
+
+    setDeleting(true)
+    try {
+      if (!user) throw new Error("No user found")
+
+      if (avatarPath) {
+        const { error: deleteError } = await supabase.storage.from("avatars").remove([avatarPath])
+        if (deleteError) throw deleteError
+      }
+
+      const { error: profileError } = await supabase.from("profiles").upsert({
+        id: user.id,
+        avatar_url: null,
+        display_name: displayName,
+        bio: bio,
+        updated_at: new Date().toISOString(),
+      })
+
+      if (profileError) throw profileError
+
+      const { error: metadataError } = await supabase.auth.updateUser({
+        data: {
+          avatar_url: null,
+        },
+      })
+
+      if (metadataError) throw metadataError
+
+      setAvatarUrl("")
+      setAvatarPath("")
+
+      mutate()
+
+      toast.success("Avatar deleted successfully")
+    } catch (error: any) {
+      toast.error(error.message || "Failed to delete avatar")
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -151,21 +226,39 @@ export function ProfileSettings() {
             </AvatarFallback>
           </Avatar>
           <div className="space-y-3">
-            <Label htmlFor="avatar-upload" className="cursor-pointer">
-              <Button variant="outline" size="sm" disabled={uploading} asChild>
-                <span>
-                  {uploading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Upload className="h-4 w-4 mr-2" />}
-                  Upload Photo
-                </span>
-              </Button>
-            </Label>
+            <div className="flex gap-2">
+              <Label htmlFor="avatar-upload" className="cursor-pointer">
+                <Button variant="outline" size="sm" disabled={uploading || deleting} asChild>
+                  <span>
+                    {uploading ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Upload className="h-4 w-4 mr-2" />
+                    )}
+                    Upload Photo
+                  </span>
+                </Button>
+              </Label>
+              {(avatarUrl || avatarPath) && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={uploading || deleting}
+                  onClick={handleAvatarDelete}
+                  className="text-destructive hover:text-destructive bg-transparent"
+                >
+                  {deleting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Trash2 className="h-4 w-4 mr-2" />}
+                  Delete
+                </Button>
+              )}
+            </div>
             <Input
               id="avatar-upload"
               type="file"
               accept="image/*"
               className="hidden"
               onChange={handleAvatarUpload}
-              disabled={uploading}
+              disabled={uploading || deleting}
             />
             <p className="text-xs text-muted-foreground">JPG, PNG or GIF. Max 2MB.</p>
           </div>

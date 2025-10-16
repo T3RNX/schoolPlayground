@@ -6,13 +6,37 @@ import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ModeToggle } from "@/components/mode-toggle"
-import { Bell, Globe, Palette } from "lucide-react"
+import { Bell, Globe, Palette, LogIn } from "lucide-react"
+import { useProfile } from "@/hooks/use-profile"
+import { Button } from "@/components/ui/button"
+import Link from "next/link"
 
 export function PreferencesSettings() {
+  const { user } = useProfile()
   const [emailNotifications, setEmailNotifications] = useState(true)
   const [gradeAlerts, setGradeAlerts] = useState(true)
   const [reminderNotifications, setReminderNotifications] = useState(false)
   const [language, setLanguage] = useState("en")
+
+  if (!user) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Authentication Required</CardTitle>
+          <CardDescription>Please log in to access your preferences</CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col items-center justify-center py-8 gap-4">
+          <LogIn className="h-12 w-12 text-muted-foreground" />
+          <p className="text-sm text-muted-foreground text-center">
+            You need to be logged in to view and manage your preferences.
+          </p>
+          <Button asChild>
+            <Link href="/auth/login">Log In</Link>
+          </Button>
+        </CardContent>
+      </Card>
+    )
+  }
 
   return (
     <div className="space-y-6">

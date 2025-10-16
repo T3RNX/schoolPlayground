@@ -5,11 +5,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Loader2, Mail, Lock, Shield } from "lucide-react"
+import { Loader2, Mail, Lock, Shield, LogIn } from "lucide-react"
 import { createBrowserClient } from "@/lib/supabase/client"
 import { toast } from "sonner"
+import { useProfile } from "@/hooks/use-profile"
+import Link from "next/link"
 
 export function SecuritySettings() {
+  const { user } = useProfile()
   const [loading, setLoading] = useState(false)
   const [emailLoading, setEmailLoading] = useState(false)
   const [currentPassword, setCurrentPassword] = useState("")
@@ -71,6 +74,26 @@ export function SecuritySettings() {
     } finally {
       setEmailLoading(false)
     }
+  }
+
+  if (!user) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Authentication Required</CardTitle>
+          <CardDescription>Please log in to access security settings</CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col items-center justify-center py-8 gap-4">
+          <LogIn className="h-12 w-12 text-muted-foreground" />
+          <p className="text-sm text-muted-foreground text-center">
+            You need to be logged in to manage your security settings.
+          </p>
+          <Button asChild>
+            <Link href="/auth/login">Log In</Link>
+          </Button>
+        </CardContent>
+      </Card>
+    )
   }
 
   return (

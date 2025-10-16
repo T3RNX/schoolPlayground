@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Download, Trash2, AlertTriangle, Loader2 } from "lucide-react"
+import { Download, Trash2, AlertTriangle, Loader2, LogIn } from "lucide-react"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,8 +16,11 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { toast } from "sonner"
+import { useProfile } from "@/hooks/use-profile"
+import Link from "next/link"
 
 export function DataSettings() {
+  const { user } = useProfile()
   const [exporting, setExporting] = useState(false)
   const [deleting, setDeleting] = useState(false)
 
@@ -43,6 +46,26 @@ export function DataSettings() {
     } finally {
       setDeleting(false)
     }
+  }
+
+  if (!user) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Authentication Required</CardTitle>
+          <CardDescription>Please log in to access data settings</CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col items-center justify-center py-8 gap-4">
+          <LogIn className="h-12 w-12 text-muted-foreground" />
+          <p className="text-sm text-muted-foreground text-center">
+            You need to be logged in to export data or manage your account.
+          </p>
+          <Button asChild>
+            <Link href="/auth/login">Log In</Link>
+          </Button>
+        </CardContent>
+      </Card>
+    )
   }
 
   return (

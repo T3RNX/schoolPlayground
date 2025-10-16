@@ -127,7 +127,8 @@ export function FocusTimer() {
   const [isPopupMode, setIsPopupMode] = useState(false)
   const [isClient, setIsClient] = useState(false)
 
-  const progress = ((totalTime - timeLeft) / totalTime) * 100
+  // Calculate progress after component is mounted on client
+  const progress = isClient ? ((totalTime - timeLeft) / totalTime) * 100 : 0
 
   useEffect(() => {
     setIsClient(true)
@@ -695,13 +696,18 @@ export function FocusTimer() {
     )
   }
 
+  // Only render the full component when on client side
   return (
     <Card className="p-4 sm:p-6 border-2 border-border/60 dark:border-border/80 shadow-lg dark:shadow-xl w-full overflow-hidden">
       <div className="mb-6">
         <div className="bg-blue-200 dark:bg-blue-900/40 p-3 sm:p-4 rounded-lg border-2 border-blue-300 dark:border-blue-600 flex items-center justify-between">
           <div className="flex items-start gap-2 sm:gap-3 min-w-0">
             <div className="rounded-full p-2 bg-blue-500 text-white flex-shrink-0">
-              <Timer className="h-4 w-4 sm:h-5 sm:w-5" />
+              {isClient ? (
+                <Timer className="h-4 w-4 sm:h-5 sm:w-5" />
+              ) : (
+                <div className="h-4 w-4 sm:h-5 sm:w-5" />
+              )}
             </div>
             <div className="min-w-0">
               <h2 className="text-base sm:text-lg md:text-xl font-semibold text-blue-950 dark:text-white">

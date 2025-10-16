@@ -35,8 +35,14 @@ export async function updateSession(request: NextRequest) {
     !user &&
     (request.nextUrl.pathname.startsWith("/grade-tool") ||
       request.nextUrl.pathname.startsWith("/grade-history") ||
-      request.nextUrl.pathname.startsWith("/grade-predictor"))
-  ) {
+      request.nextUrl.pathname.startsWith("/grade-predictor") ||
+      request.nextUrl.pathname.startsWith("/eszett-converter") ||
+      request.nextUrl.pathname.startsWith("/focus-timer") ||
+      request.nextUrl.pathname.startsWith("/settings") ||
+      request.nextUrl.pathname.startsWith("/sites") ||
+      // Handle the root path as a special case
+      (request.nextUrl.pathname === "/" && !request.nextUrl.pathname.startsWith("/auth/"))
+  )) {
     const url = request.nextUrl.clone()
     url.pathname = "/auth/login"
     return NextResponse.redirect(url)

@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import type { LucideIcon } from "lucide-react"
@@ -17,6 +17,11 @@ interface NavItemProps {
 export function NavItem({ href, icon: Icon, label, onNavigate, comingSoon }: NavItemProps) {
   const pathname = usePathname()
   const isActive = pathname === href
+  const [isClient, setIsClient] = useState(false)
+  
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
 
   const handleClick = (e: React.MouseEvent) => {
     if (comingSoon) {
@@ -43,7 +48,11 @@ export function NavItem({ href, icon: Icon, label, onNavigate, comingSoon }: Nav
               : "hover:bg-secondary/50 cursor-pointer"
         }`}
       >
-        <Icon className={`h-5 w-5 ${comingSoon ? "blur-sm" : ""}`} />
+        {isClient ? (
+          <Icon className={`h-5 w-5 ${comingSoon ? "blur-sm" : ""}`} />
+        ) : (
+          <div className={`h-5 w-5 ${comingSoon ? "blur-sm" : ""}`} />
+        )}
         <span className={comingSoon ? "blur-sm select-none" : ""}>{label}</span>
         {/* </CHANGE> */}
         {comingSoon && (

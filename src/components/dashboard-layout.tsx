@@ -40,6 +40,7 @@ import {
 import { NavItem } from "@/components/nav-item"
 import { createBrowserClient } from "@/lib/supabase/client"
 import { useProfile } from "@/hooks/use-profile"
+import { AuthLoadingScreen } from "@/components/auth-loading-screen"
 
 export default function DashboardLayout({
   children,
@@ -185,16 +186,7 @@ export default function DashboardLayout({
 
   // Show loading screen while checking authentication
   if (loading || !isClient) {
-    return (
-      <div className="flex min-h-screen bg-background">
-        <div className="flex items-center justify-center w-full">
-          <div className="flex flex-col items-center gap-4">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            <p className="text-sm text-muted-foreground">Loading...</p>
-          </div>
-        </div>
-      </div>
-    )
+    return <AuthLoadingScreen />
   }
 
   // Don't render content if no user (additional safety check)

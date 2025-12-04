@@ -1,5 +1,5 @@
 import { GradeCalculator } from "@/components/gradeCalculator/grade-calculator";
-import { GradeGoals } from "@/components/gradeCalculator/grade-goals";
+import { GradePredictor } from "@/components/gradeCalculator/grade-predictor";
 import { GradeHistory } from "@/components/gradeCalculator/grade-history";
 
 export default function GradeCalculatorPage() {
@@ -9,7 +9,7 @@ export default function GradeCalculatorPage() {
         <GradeCalculator />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <GradeHistory />
-          <GradeGoals />
+          <GradePredictor />
         </div>
       </div>
     </>

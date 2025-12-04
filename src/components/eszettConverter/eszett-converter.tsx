@@ -121,7 +121,7 @@ export function EszettConverter({
   const replaceAll = () => {
     const eszettCount = (text.match(/ß/g) || []).length
     if (eszettCount > 0) {
-      const newText = text.replace(/ß/g, "ss")
+      const newText = text.replaceAll("ß", "ss")
       updateText(newText)
       setLastAction(`Replaced all ${eszettCount} ß characters`)
       showActionFeedback()
@@ -184,11 +184,10 @@ export function EszettConverter({
       "Der Fuß des Berges ist sehr steil und weiß.",
     ]
 
-    // Use a more secure random selection if available, otherwise fall back to Math.random
     let index
-    if (isClient && window.crypto && window.crypto.getRandomValues) {
+    if (isClient && globalThis.crypto && globalThis.crypto.getRandomValues) {
       const array = new Uint32Array(1)
-      window.crypto.getRandomValues(array)
+      globalThis.crypto.getRandomValues(array)
       index = array[0] % sampleTexts.length
     } else {
       index = Math.floor(Math.random() * sampleTexts.length)
@@ -224,7 +223,7 @@ export function EszettConverter({
     const parts = []
     let lastIndex = 0
 
-    highlightedPositions.forEach((position, index) => {
+    for (const [index, position] of highlightedPositions.entries()) {
       if (position > lastIndex) {
         parts.push(
           <span key={`text-${index}`} className="text-foreground whitespace-pre-wrap">
@@ -258,7 +257,7 @@ export function EszettConverter({
       )
 
       lastIndex = position + 1
-    })
+    }
 
     if (lastIndex < text.length) {
       parts.push(
@@ -283,7 +282,7 @@ export function EszettConverter({
               <div>
                 <h2 className="text-xl font-semibold text-blue-950 dark:text-white">Eszett Converter</h2>
                 <p className="text-sm text-blue-900 dark:text-blue-100">
-                  Detects German `&quot;`ß`&quot;` characters and converts them to Swiss `&quot;`ss`&quot;` format.
+                  Detects German &#34;ß&#34; characters and converts them to Swiss &#34;ss&#34; format.
                 </p>
               </div>
             </div>
@@ -333,7 +332,7 @@ export function EszettConverter({
                 variant="outline"
                 size="sm"
                 onClick={loadSampleText}
-                className="text-xs hover:bg-muted/50 transition-colors"
+                className="text-xs hover:bg-muted/50 transition-colors bg-transparent"
               >
                 <Zap className="h-3 w-3 mr-1" />
                 Load Sample
@@ -397,7 +396,7 @@ export function EszettConverter({
                   <p className="text-sm text-blue-800 dark:text-blue-200 flex items-center gap-2">
                     <AlertCircle className="h-4 w-4" />
                     <span>
-                      Found {highlightedPositions.length} ß character{highlightedPositions.length !== 1 ? "s" : ""}.
+                      Found {highlightedPositions.length} ß character{highlightedPositions.length === 1 ? "" : "s"}.
                       Click on any highlighted ß or use the replace buttons below.
                     </span>
                   </p>
@@ -416,13 +415,15 @@ export function EszettConverter({
                   </p>
                   <ul className="text-sm text-secondary-foreground/80 space-y-1">
                     <li className="flex items-center gap-2">
-                      <span className="bg-yellow-200 dark:bg-yellow-800 px-2 py-0.5 rounded text-xs font-medium">
+                      <span className="bg-yellow-200 dark:bg-yellow-800 px-2 py-0.5 rounded text-xs font-medium text-yellow-900 dark:text-yellow-100">
                         Yellow
                       </span>
                       <span>= detected ß symbols (hover to see replace button)</span>
                     </li>
                     <li className="flex items-center gap-2">
-                      <span className="bg-pink-200 dark:bg-pink-800 px-2 py-0.5 rounded text-xs font-medium">Pink</span>
+                      <span className="bg-pink-200 dark:bg-pink-800 px-2 py-0.5 rounded text-xs font-medium text-pink-900 dark:text-pink-100">
+                        Pink
+                      </span>
                       <span>= selected for replacement</span>
                     </li>
                     <li>• Click any ß to select it, then use &quot;Replace Selected&quot; button</li>
@@ -450,7 +451,7 @@ export function EszettConverter({
                         onClick={undo}
                         disabled={historyIndex <= 0}
                         variant="outline"
-                        className="flex items-center justify-center hover:bg-muted/50 transition-colors"
+                        className="flex items-center justify-center hover:bg-muted/50 transition-colors bg-transparent"
                       >
                         <Undo className="h-4 w-4 mr-2" />
                         Undo
@@ -522,7 +523,7 @@ export function EszettConverter({
                       <Button
                         onClick={copyFormattedText}
                         variant="outline"
-                        className="flex items-center justify-center hover:bg-muted/50 transition-colors"
+                        className="flex items-center justify-center hover:bg-muted/50 transition-colors bg-transparent"
                       >
                         {copied ? (
                           <>

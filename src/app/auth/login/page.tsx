@@ -10,6 +10,8 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { GraduationCap, Mail, Lock, ArrowRight, AlertCircle } from "lucide-react"
+import { useAuthRedirect } from "@/hooks/use-auth-redirect"
+import { AuthLoadingScreen } from "@/components/auth-loading-screen"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -17,6 +19,12 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
+  const { isCheckingAuth } = useAuthRedirect(true)
+
+  // Show loading while checking authentication
+  if (isCheckingAuth) {
+    return <AuthLoadingScreen />
+  }
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()

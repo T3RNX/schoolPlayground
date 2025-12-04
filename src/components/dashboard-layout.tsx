@@ -40,6 +40,7 @@ import {
 import { NavItem } from "@/components/nav-item"
 import { createBrowserClient } from "@/lib/supabase/client"
 import { useProfile } from "@/hooks/use-profile"
+import { AuthLoadingScreen } from "@/components/auth-loading-screen"
 
 export default function DashboardLayout({
   children,
@@ -60,11 +61,24 @@ export default function DashboardLayout({
     setIsClient(true)
 
     const checkUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
-      setUser(user)
-      setLoading(false)
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser()
+        
+        if (!user) {
+          // If no user, redirect immediately
+          router.replace("/auth/login")
+          return
+        }
+        
+        setUser(user)
+      } catch (error) {
+        console.error("Error checking user:", error)
+        router.replace("/auth/login")
+      } finally {
+        setLoading(false)
+      }
     }
 
     checkUser()
@@ -72,11 +86,16 @@ export default function DashboardLayout({
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event: any, session: any) => {
-      setUser(session?.user ?? null)
+      if (session?.user) {
+        setUser(session.user)
+      } else {
+        // If user logs out, redirect to login
+        router.replace("/auth/login")
+      }
     })
 
     return () => subscription.unsubscribe()
-  }, [supabase.auth])
+  }, [supabase.auth, router])
 
   const handleLogout = async () => {
   try {
@@ -164,6 +183,16 @@ export default function DashboardLayout({
     window.addEventListener("resize", handleResize)
     return () => window.removeEventListener("resize", handleResize)
   }, [closeSidebar])
+
+  // Show loading screen while checking authentication
+  if (loading || !isClient) {
+    return <AuthLoadingScreen />
+  }
+
+  // Don't render content if no user (additional safety check)
+  if (!user) {
+    return null
+  }
 
   return (
     <div className="flex min-h-screen bg-background">

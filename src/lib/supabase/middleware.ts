@@ -34,21 +34,29 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // Redirect to login if accessing protected routes without auth
-  if (
-    !user &&
-    (request.nextUrl.pathname.startsWith("/grade-tool") ||
-      request.nextUrl.pathname.startsWith("/grade-history") ||
-      request.nextUrl.pathname.startsWith("/grade-predictor") ||
-      request.nextUrl.pathname.startsWith("/eszett-converter") ||
-      request.nextUrl.pathname.startsWith("/focus-timer") ||
-      request.nextUrl.pathname.startsWith("/settings") ||
-      request.nextUrl.pathname.startsWith("/sites") ||
-      // Handle the root path as a special case
-      (request.nextUrl.pathname === "/" && !request.nextUrl.pathname.startsWith("/auth/"))
-  )) {
+  const pathname = request.nextUrl.pathname
+
+  // Define public routes that don't require authentication
+  const publicRoutes = [
+    '/auth/login',
+    '/auth/sign-up', 
+    '/auth/sign-up-success'
+  ]
+
+  // Check if the current path is a public route
+  const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route))
+
+  // If user is not authenticated and trying to access a protected route
+  if (!user && !isPublicRoute) {
     const url = request.nextUrl.clone()
     url.pathname = "/auth/login"
+    return NextResponse.redirect(url)
+  }
+
+  // If user IS authenticated and trying to access auth pages, redirect to dashboard
+  if (user && isPublicRoute) {
+    const url = request.nextUrl.clone()
+    url.pathname = "/"
     return NextResponse.redirect(url)
   }
 

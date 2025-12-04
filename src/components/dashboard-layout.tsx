@@ -86,11 +86,11 @@ export default function DashboardLayout({
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event: any, session: any) => {
-      if (!session?.user) {
+      if (session?.user) {
+        setUser(session.user)
+      } else {
         // If user logs out, redirect to login
         router.replace("/auth/login")
-      } else {
-        setUser(session.user)
       }
     })
 

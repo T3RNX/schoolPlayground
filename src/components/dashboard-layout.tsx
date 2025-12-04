@@ -60,11 +60,24 @@ export default function DashboardLayout({
     setIsClient(true)
 
     const checkUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
-      setUser(user)
-      setLoading(false)
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser()
+        
+        if (!user) {
+          // If no user, redirect immediately
+          router.replace("/auth/login")
+          return
+        }
+        
+        setUser(user)
+      } catch (error) {
+        console.error("Error checking user:", error)
+        router.replace("/auth/login")
+      } finally {
+        setLoading(false)
+      }
     }
 
     checkUser()
@@ -72,11 +85,16 @@ export default function DashboardLayout({
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event: any, session: any) => {
-      setUser(session?.user ?? null)
+      if (!session?.user) {
+        // If user logs out, redirect to login
+        router.replace("/auth/login")
+      } else {
+        setUser(session.user)
+      }
     })
 
     return () => subscription.unsubscribe()
-  }, [supabase.auth])
+  }, [supabase.auth, router])
 
   const handleLogout = async () => {
   try {
@@ -164,6 +182,25 @@ export default function DashboardLayout({
     window.addEventListener("resize", handleResize)
     return () => window.removeEventListener("resize", handleResize)
   }, [closeSidebar])
+
+  // Show loading screen while checking authentication
+  if (loading || !isClient) {
+    return (
+      <div className="flex min-h-screen bg-background">
+        <div className="flex items-center justify-center w-full">
+          <div className="flex flex-col items-center gap-4">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            <p className="text-sm text-muted-foreground">Loading...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Don't render content if no user (additional safety check)
+  if (!user) {
+    return null
+  }
 
   return (
     <div className="flex min-h-screen bg-background">

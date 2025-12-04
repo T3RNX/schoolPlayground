@@ -54,7 +54,7 @@ export default function DashboardLayout({
   const router = useRouter()
   const supabase = createBrowserClient()
 
-  const { avatarUrl, user: profileUser } = useProfile()
+  const { avatarUrl } = useProfile()
 
   useEffect(() => {
     setIsClient(true)
@@ -93,6 +93,62 @@ export default function DashboardLayout({
   const closeSidebar = useCallback(() => {
     setSidebarOpen(false)
   }, [])
+
+  const renderUserSection = () => {
+    if (loading) {
+      return <div className="h-8 w-8 rounded-full bg-muted animate-pulse" />
+    }
+
+    if (user) {
+      return (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="rounded-full hover:bg-secondary/50 transition-all hover:scale-105 active:scale-95"
+            >
+              <Avatar className="h-8 w-8">
+                <AvatarImage src={avatarUrl || "/placeholder.svg"} alt={user.email} />
+                <AvatarFallback>{user.email?.charAt(0).toUpperCase() || "U"}</AvatarFallback>
+              </Avatar>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="border-0 shadow-lg">
+            <DropdownMenuLabel>
+              <div className="flex flex-col">
+                <span className="text-sm font-medium">My Account</span>
+                <span className="text-xs text-muted-foreground">{user.email}</span>
+              </div>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator className="bg-zinc-200 dark:bg-zinc-700" />
+            <DropdownMenuItem onClick={() => router.push("/settings")}>
+              <Settings className="mr-2 h-4 w-4" />
+              <span>Settings</span>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator className="bg-zinc-200 dark:bg-zinc-700" />
+            <DropdownMenuItem onClick={handleLogout}>
+              <LogOut className="mr-2 h-4 w-4" />
+              <span>Log out</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )
+    }
+
+    return (
+      <div className="flex items-center gap-2">
+        <Button variant="ghost" size="sm" onClick={() => router.push("/auth/login")} className="gap-2">
+          <LogIn className="h-4 w-4" />
+          <span className="hidden sm:inline">Login</span>
+        </Button>
+        <Button size="sm" onClick={() => router.push("/auth/sign-up")} className="gap-2">
+          <UserPlus className="h-4 w-4" />
+          <span className="hidden sm:inline">Sign Up</span>
+        </Button>
+      </div>
+    )
+  }
 
   useEffect(() => {
     closeSidebar()
@@ -229,53 +285,7 @@ export default function DashboardLayout({
             </Button>
             <ModeToggle />
 
-            {loading ? (
-              <div className="h-8 w-8 rounded-full bg-muted animate-pulse" />
-            ) : user ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="rounded-full hover:bg-secondary/50 transition-all hover:scale-105 active:scale-95"
-                  >
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={avatarUrl || "/placeholder.svg"} alt={user.email} />
-                      <AvatarFallback>{user.email?.charAt(0).toUpperCase() || "U"}</AvatarFallback>
-                    </Avatar>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="border-0 shadow-lg">
-                  <DropdownMenuLabel>
-                    <div className="flex flex-col">
-                      <span className="text-sm font-medium">My Account</span>
-                      <span className="text-xs text-muted-foreground">{user.email}</span>
-                    </div>
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator className="bg-zinc-200 dark:bg-zinc-700" />
-                  <DropdownMenuItem onClick={() => router.push("/settings")}>
-                    <Settings className="mr-2 h-4 w-4" />
-                    <span>Settings</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator className="bg-zinc-200 dark:bg-zinc-700" />
-                  <DropdownMenuItem onClick={handleLogout}>
-                    <LogOut className="mr-2 h-4 w-4" />
-                    <span>Log out</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : (
-              <div className="flex items-center gap-2">
-                <Button variant="ghost" size="sm" onClick={() => router.push("/auth/login")} className="gap-2">
-                  <LogIn className="h-4 w-4" />
-                  <span className="hidden sm:inline">Login</span>
-                </Button>
-                <Button size="sm" onClick={() => router.push("/auth/sign-up")} className="gap-2">
-                  <UserPlus className="h-4 w-4" />
-                  <span className="hidden sm:inline">Sign Up</span>
-                </Button>
-              </div>
-            )}
+            {renderUserSection()}
           </div>
         </header>
 

@@ -7,7 +7,7 @@ import DashboardLayout from "./dashboard-layout"
 export default function ConditionalLayout({
   children,
 }: {
-  children: React.ReactNode
+  readonly children: React.ReactNode
 }) {
   const pathname = usePathname()
 

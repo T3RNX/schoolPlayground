@@ -9,5 +9,6 @@ export function createBrowserClient() {
 
   return client
 }
-export { createClient }
+
+export { createBrowserClient as createClient } from "@supabase/ssr"
 

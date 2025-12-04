@@ -130,7 +130,7 @@ export function GradeCalculator() {
 
   const calculateAverage = () => {
     setError(null)
-    const validEntries = gradeEntries.filter((entry) => entry.grade.trim() !== "" && !isNaN(Number(entry.grade)))
+    const validEntries = gradeEntries.filter((entry) => entry.grade.trim() !== "" && !Number.isNaN(Number(entry.grade)))
 
     if (validEntries.length === 0) {
       setError("Please enter at least one valid grade")
@@ -144,7 +144,7 @@ export function GradeCalculator() {
       const grade = Number(entry.grade)
       const weight = Number(entry.weight) || 1
 
-      if (isNaN(grade) || grade < selectedSystem.min || grade > selectedSystem.max) {
+      if (Number.isNaN(grade) || grade < selectedSystem.min || grade > selectedSystem.max) {
         continue
       }
 
@@ -197,7 +197,7 @@ export function GradeCalculator() {
     const max = Number.parseFloat(maximumPoints)
     const achieved = Number.parseFloat(achievedPoints)
 
-    if (isNaN(max) || isNaN(achieved)) {
+    if (Number.isNaN(max) || Number.isNaN(achieved)) {
       setError("Please enter valid numbers")
       return
     }
@@ -259,7 +259,7 @@ export function GradeCalculator() {
   }
 
   const addStep = () => {
-    const lastStep = steps[steps.length - 1]
+    const lastStep = steps.at(-1)
     const newThreshold = lastStep ? Math.min(lastStep.threshold + 10, 100) : 50
     const newGrade = lastStep ? Math.min(lastStep.grade + 0.5, Number(customMax) || 10) : 4
 

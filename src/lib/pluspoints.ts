@@ -3,20 +3,20 @@
  *
  * Rules:
  * 1. Grades are rounded to the nearest 0.5
- * 2. For grades >= 4.0: pluspoints = rounded_grade - 4.0
- * 3. For grades < 4.0: pluspoints = (rounded_grade - 4.0) * 2 (doubled penalty)
+ * 2. For grades >= 4: pluspoints = rounded_grade - 4
+ * 3. For grades < 4: pluspoints = (rounded_grade - 4) * 2 (doubled penalty)
  *
  * Examples:
- * - 5.4 → rounds to 5.5 → 5.5 - 4.0 = 1.5 pluspoints
- * - 5.2 → rounds to 5.0 → 5.0 - 4.0 = 1.0 pluspoint
- * - 4.5 → rounds to 4.5 → 4.5 - 4.0 = 0.5 pluspoints
- * - 4.0 → rounds to 4.0 → 4.0 - 4.0 = 0.0 pluspoints
- * - 3.5 → rounds to 3.5 → (3.5 - 4.0) * 2 = -1.0 pluspoint
- * - 3.0 → rounds to 3.0 → (3.0 - 4.0) * 2 = -2.0 pluspoints
- * - 2.0 → rounds to 2.0 → (2.0 - 4.0) * 2 = -4.0 pluspoints
+ * - 5.4 → rounds to 5.5 → 5.5 - 4 = 1.5 pluspoints
+ * - 5.2 → rounds to 5 → 5 - 4 = 1 pluspoint
+ * - 4.5 → rounds to 4.5 → 4.5 - 4 = 0.5 pluspoints
+ * - 4 → rounds to 4 → 4 - 4 = 0 pluspoints
+ * - 3.5 → rounds to 3.5 → (3.5 - 4) * 2 = -1 pluspoint
+ * - 3 → rounds to 3 → (3 - 4) * 2 = -2 pluspoints
+ * - 2 → rounds to 2 → (2 - 4) * 2 = -4 pluspoints
  */
 
-const PASSING_GRADE = 4.0
+const PASSING_GRADE = 4
 
 /**
  * Round a grade to the nearest 0.5

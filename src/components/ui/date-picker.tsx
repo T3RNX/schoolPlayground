@@ -8,10 +8,10 @@ import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 
 interface DatePickerProps {
-  date?: Date
-  onSelect?: (date: Date | undefined) => void
-  placeholder?: string
-  className?: string
+  readonly date?: Date
+  readonly onSelect?: (date: Date | undefined) => void
+  readonly placeholder?: string
+  readonly className?: string
 }
 
 export function DatePicker({ date, onSelect, placeholder = "Pick a date", className }: DatePickerProps) {

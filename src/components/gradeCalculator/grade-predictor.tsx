@@ -49,26 +49,62 @@ export function GradePredictor() {
 
   const selectedSystem = gradingSystems[system as keyof typeof gradingSystems]
 
+  const validateInputs = (current: number, target: number, completed: number, remaining: number) => {
+    if (Number.isNaN(current) || Number.isNaN(target) || Number.isNaN(completed) || Number.isNaN(remaining)) {
+      return "Please enter valid numbers in all fields"
+    }
+    
+    if (remaining <= 0) {
+      return "You need at least 1 remaining test to calculate"
+    }
+    
+    return null
+  }
+
+  const checkIfAchievable = (requiredGrade: number) => {
+    return requiredGrade >= selectedSystem.min && requiredGrade <= selectedSystem.max
+  }
+
+  const getUnachievableMessage = (requiredGrade: number, target: number) => {
+    const isGermany = system === "germany"
+    const alreadyExceeded = isGermany 
+      ? requiredGrade < selectedSystem.min 
+      : requiredGrade > selectedSystem.max
+    
+    return alreadyExceeded
+      ? `Great news! You've already exceeded your target average of ${target}!`
+      : `Unfortunately, reaching an average of ${target} is not possible even with perfect scores.`
+  }
+
+  const getAchievableMessage = (requiredGrade: number, remaining: number) => {
+    const isGermany = system === "germany"
+    const isWithinPassThreshold = isGermany 
+      ? requiredGrade <= selectedSystem.pass 
+      : requiredGrade >= selectedSystem.pass
+    
+    const gradeText = `You need an average of ${requiredGrade.toFixed(2)} on your remaining ${remaining} test(s).`
+    
+    if (isWithinPassThreshold) {
+      return `${gradeText} This is achievable!`
+    }
+    
+    return isGermany 
+      ? `${gradeText} This will be challenging.`
+      : `${gradeText} This should be manageable!`
+  }
+
   const calculateRequiredGrade = () => {
     const current = Number.parseFloat(currentAverage)
     const target = Number.parseFloat(targetAverage)
     const completed = Number.parseInt(completedTests)
     const remaining = Number.parseInt(remainingTests)
 
-    if (isNaN(current) || isNaN(target) || isNaN(completed) || isNaN(remaining)) {
+    const validationError = validateInputs(current, target, completed, remaining)
+    if (validationError) {
       setResult({
         requiredGrade: 0,
         isAchievable: false,
-        message: "Please enter valid numbers in all fields",
-      })
-      return
-    }
-
-    if (remaining <= 0) {
-      setResult({
-        requiredGrade: 0,
-        isAchievable: false,
-        message: "You need at least 1 remaining test to calculate",
+        message: validationError,
       })
       return
     }
@@ -79,41 +115,11 @@ export function GradePredictor() {
     const pointsNeeded = totalPointsNeeded - currentTotalPoints
     const requiredGrade = pointsNeeded / remaining
 
-    const isAchievable =
-      system === "germany"
-        ? requiredGrade >= selectedSystem.min && requiredGrade <= selectedSystem.max
-        : requiredGrade >= selectedSystem.min && requiredGrade <= selectedSystem.max
-
-    let message = ""
-    if (!isAchievable) {
-      if (system === "germany") {
-        if (requiredGrade < selectedSystem.min) {
-          message = `Great news! You've already exceeded your target average of ${target}!`
-        } else {
-          message = `Unfortunately, reaching an average of ${target} is not possible even with perfect scores.`
-        }
-      } else {
-        if (requiredGrade > selectedSystem.max) {
-          message = `Unfortunately, reaching an average of ${target} is not possible even with perfect scores.`
-        } else {
-          message = `Great news! You've already exceeded your target average of ${target}!`
-        }
-      }
-    } else {
-      if (system === "germany") {
-        if (requiredGrade <= selectedSystem.pass) {
-          message = `You need an average of ${requiredGrade.toFixed(2)} on your remaining ${remaining} test(s). This is achievable!`
-        } else {
-          message = `You need an average of ${requiredGrade.toFixed(2)} on your remaining ${remaining} test(s). This will be challenging.`
-        }
-      } else {
-        if (requiredGrade >= selectedSystem.pass) {
-          message = `You need an average of ${requiredGrade.toFixed(2)} on your remaining ${remaining} test(s). This is achievable!`
-        } else {
-          message = `You need an average of ${requiredGrade.toFixed(2)} on your remaining ${remaining} test(s). This should be manageable!`
-        }
-      }
-    }
+    const isAchievable = checkIfAchievable(requiredGrade)
+    
+    const message = isAchievable
+      ? getAchievableMessage(requiredGrade, remaining)
+      : getUnachievableMessage(requiredGrade, target)
 
     setResult({
       requiredGrade: Number.parseFloat(requiredGrade.toFixed(2)),

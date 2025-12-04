@@ -1,55 +1,63 @@
-// Utility function to get color classes based on grade quality
-export function getGradeQualityColor(grade: number, system = "switzerland"): string {
-  if (system === "switzerland") {
-    // Swiss system: 1-6, higher is better
-    if (grade >= 6.0) return "text-emerald-700 dark:text-emerald-400" // Excellent
-    if (grade >= 5.0) return "text-green-600 dark:text-green-400" // Very good
-    if (grade >= 4.0) return "text-green-500 dark:text-green-300" // Good/Passing
-    if (grade >= 3.0) return "text-amber-500 dark:text-amber-400" // Below passing
-    return "text-red-600 dark:text-red-400" // Poor
-  } else if (system === "germany") {
-    // German system: 1-6, lower is better
-    if (grade <= 1.5) return "text-emerald-700 dark:text-emerald-400" // Excellent
-    if (grade <= 2.5) return "text-green-600 dark:text-green-400" // Very good
-    if (grade <= 3.5) return "text-green-500 dark:text-green-300" // Good
-    if (grade <= 4.0) return "text-amber-500 dark:text-amber-400" // Passing
-    if (grade <= 4.5) return "text-orange-500 dark:text-orange-400" // Below passing
-    return "text-red-600 dark:text-red-400" // Poor
-  } else if (system === "usa") {
-    // USA system: 0-100, higher is better
-    if (grade >= 90) return "text-emerald-700 dark:text-emerald-400" // Excellent (A)
-    if (grade >= 80) return "text-green-600 dark:text-green-400" // Very good (B)
-    if (grade >= 70) return "text-green-500 dark:text-green-300" // Good (C)
-    if (grade >= 60) return "text-amber-500 dark:text-amber-400" // Passing (D)
-    if (grade >= 50) return "text-orange-500 dark:text-orange-400" // Below passing
-    return "text-red-600 dark:text-red-400" // Poor (F)
+// Grade quality thresholds and colors configuration
+const GRADE_SYSTEMS = {
+  switzerland: {
+    thresholds: [
+      { min: 6, colors: { text: "text-emerald-700 dark:text-emerald-400", bg: "bg-emerald-600 text-white dark:bg-emerald-500" } },
+      { min: 5, colors: { text: "text-green-600 dark:text-green-400", bg: "bg-green-600 text-white dark:bg-green-500" } },
+      { min: 4, colors: { text: "text-green-500 dark:text-green-300", bg: "bg-green-500 text-white dark:bg-green-400" } },
+      { min: 3, colors: { text: "text-amber-500 dark:text-amber-400", bg: "bg-amber-500 text-white dark:bg-amber-400" } },
+    ],
+    fallback: { text: "text-red-600 dark:text-red-400", bg: "bg-red-600 text-white dark:bg-red-500" },
+    isHigherBetter: true
+  },
+  germany: {
+    thresholds: [
+      { max: 1.5, colors: { text: "text-emerald-700 dark:text-emerald-400", bg: "bg-emerald-600 text-white dark:bg-emerald-500" } },
+      { max: 2.5, colors: { text: "text-green-600 dark:text-green-400", bg: "bg-green-600 text-white dark:bg-green-500" } },
+      { max: 3.5, colors: { text: "text-green-500 dark:text-green-300", bg: "bg-green-500 text-white dark:bg-green-400" } },
+      { max: 4, colors: { text: "text-amber-500 dark:text-amber-400", bg: "bg-amber-500 text-white dark:bg-amber-400" } },
+      { max: 4.5, colors: { text: "text-orange-500 dark:text-orange-400", bg: "bg-orange-500 text-white dark:bg-orange-400" } },
+    ],
+    fallback: { text: "text-red-600 dark:text-red-400", bg: "bg-red-600 text-white dark:bg-red-500" },
+    isHigherBetter: false
+  },
+  usa: {
+    thresholds: [
+      { min: 90, colors: { text: "text-emerald-700 dark:text-emerald-400", bg: "bg-emerald-600 text-white dark:bg-emerald-500" } },
+      { min: 80, colors: { text: "text-green-600 dark:text-green-400", bg: "bg-green-600 text-white dark:bg-green-500" } },
+      { min: 70, colors: { text: "text-green-500 dark:text-green-300", bg: "bg-green-500 text-white dark:bg-green-400" } },
+      { min: 60, colors: { text: "text-amber-500 dark:text-amber-400", bg: "bg-amber-500 text-white dark:bg-amber-400" } },
+      { min: 50, colors: { text: "text-orange-500 dark:text-orange-400", bg: "bg-orange-500 text-white dark:bg-orange-400" } },
+    ],
+    fallback: { text: "text-red-600 dark:text-red-400", bg: "bg-red-600 text-white dark:bg-red-500" },
+    isHigherBetter: true
+  }
+} as const
+
+function getGradeColors(grade: number, system: keyof typeof GRADE_SYSTEMS, colorType: 'text' | 'bg') {
+  const config = GRADE_SYSTEMS[system]
+  if (!config) {
+    return colorType === 'text' ? "text-foreground" : "bg-secondary text-secondary-foreground"
   }
 
-  return "text-foreground"
+  for (const threshold of config.thresholds) {
+    const meetsThreshold = 'min' in threshold 
+      ? grade >= threshold.min 
+      : grade <= threshold.max
+    
+    if (meetsThreshold) {
+      return threshold.colors[colorType]
+    }
+  }
+
+  return config.fallback[colorType]
+}
+
+// Utility function to get color classes based on grade quality
+export function getGradeQualityColor(grade: number, system = "switzerland"): string {
+  return getGradeColors(grade, system as keyof typeof GRADE_SYSTEMS, 'text')
 }
 
 export function getGradeQualityBadgeColor(grade: number, system = "switzerland"): string {
-  if (system === "switzerland") {
-    if (grade >= 6.0) return "bg-emerald-600 text-white dark:bg-emerald-500"
-    if (grade >= 5.0) return "bg-green-600 text-white dark:bg-green-500"
-    if (grade >= 4.0) return "bg-green-500 text-white dark:bg-green-400"
-    if (grade >= 3.0) return "bg-amber-500 text-white dark:bg-amber-400"
-    return "bg-red-600 text-white dark:bg-red-500"
-  } else if (system === "germany") {
-    if (grade <= 1.5) return "bg-emerald-600 text-white dark:bg-emerald-500"
-    if (grade <= 2.5) return "bg-green-600 text-white dark:bg-green-500"
-    if (grade <= 3.5) return "bg-green-500 text-white dark:bg-green-400"
-    if (grade <= 4.0) return "bg-amber-500 text-white dark:bg-amber-400"
-    if (grade <= 4.5) return "bg-orange-500 text-white dark:bg-orange-400"
-    return "bg-red-600 text-white dark:bg-red-500"
-  } else if (system === "usa") {
-    if (grade >= 90) return "bg-emerald-600 text-white dark:bg-emerald-500"
-    if (grade >= 80) return "bg-green-600 text-white dark:bg-green-500"
-    if (grade >= 70) return "bg-green-500 text-white dark:bg-green-400"
-    if (grade >= 60) return "bg-amber-500 text-white dark:bg-amber-400"
-    if (grade >= 50) return "bg-orange-500 text-white dark:bg-orange-400"
-    return "bg-red-600 text-white dark:bg-red-500"
-  }
-
-  return "bg-secondary text-secondary-foreground"
+  return getGradeColors(grade, system as keyof typeof GRADE_SYSTEMS, 'bg')
 }

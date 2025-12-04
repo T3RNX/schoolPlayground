@@ -121,7 +121,7 @@ export function EszettConverter({
   const replaceAll = () => {
     const eszettCount = (text.match(/ß/g) || []).length
     if (eszettCount > 0) {
-      const newText = text.replace(/ß/g, "ss")
+      const newText = text.replaceAll("ß", "ss")
       updateText(newText)
       setLastAction(`Replaced all ${eszettCount} ß characters`)
       showActionFeedback()
@@ -185,9 +185,9 @@ export function EszettConverter({
     ]
 
     let index
-    if (isClient && window.crypto && window.crypto.getRandomValues) {
+    if (isClient && globalThis.crypto && globalThis.crypto.getRandomValues) {
       const array = new Uint32Array(1)
-      window.crypto.getRandomValues(array)
+      globalThis.crypto.getRandomValues(array)
       index = array[0] % sampleTexts.length
     } else {
       index = Math.floor(Math.random() * sampleTexts.length)
@@ -223,7 +223,7 @@ export function EszettConverter({
     const parts = []
     let lastIndex = 0
 
-    highlightedPositions.forEach((position, index) => {
+    for (const [index, position] of highlightedPositions.entries()) {
       if (position > lastIndex) {
         parts.push(
           <span key={`text-${index}`} className="text-foreground whitespace-pre-wrap">
@@ -257,7 +257,7 @@ export function EszettConverter({
       )
 
       lastIndex = position + 1
-    })
+    }
 
     if (lastIndex < text.length) {
       parts.push(
@@ -396,7 +396,7 @@ export function EszettConverter({
                   <p className="text-sm text-blue-800 dark:text-blue-200 flex items-center gap-2">
                     <AlertCircle className="h-4 w-4" />
                     <span>
-                      Found {highlightedPositions.length} ß character{highlightedPositions.length !== 1 ? "s" : ""}.
+                      Found {highlightedPositions.length} ß character{highlightedPositions.length === 1 ? "" : "s"}.
                       Click on any highlighted ß or use the replace buttons below.
                     </span>
                   </p>

@@ -37,16 +37,20 @@ export function NavItem({ href, icon: Icon, label, onNavigate, comingSoon }: Nav
     }
   }
 
+  const getItemClassName = () => {
+    if (isActive) {
+      return "bg-secondary hover:bg-secondary"
+    }
+    if (comingSoon) {
+      return "opacity-60 cursor-not-allowed"
+    }
+    return "hover:bg-secondary/50 cursor-pointer"
+  }
+
   return (
     <Link href={comingSoon ? "#" : href} className="block" onClick={handleClick}>
       <div
-        className={`w-full rounded-md p-2 flex items-center gap-2 transition-colors relative ${
-          isActive
-            ? "bg-secondary hover:bg-secondary"
-            : comingSoon
-              ? "opacity-60 cursor-not-allowed"
-              : "hover:bg-secondary/50 cursor-pointer"
-        }`}
+        className={`w-full rounded-md p-2 flex items-center gap-2 transition-colors relative ${getItemClassName()}`}
       >
         {isClient ? (
           <Icon className={`h-5 w-5 ${comingSoon ? "blur-sm" : ""}`} />

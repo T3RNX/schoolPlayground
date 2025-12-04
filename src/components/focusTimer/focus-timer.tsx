@@ -83,6 +83,49 @@ interface Project {
   name: string
 }
 
+const checkIfPopupMode = () => {
+  if (typeof globalThis.window === "undefined") return false
+  const urlParams = new URLSearchParams(globalThis.location.search)
+  return urlParams.get("popup") === "true"
+}
+
+const extractUrlParams = () => {
+  if (typeof globalThis.window === "undefined") return null
+  const urlParams = new URLSearchParams(globalThis.location.search)
+  return {
+    mode: urlParams.get("mode") as TimerMode,
+    timeLeft: urlParams.get("timeLeft"),
+    totalTime: urlParams.get("totalTime"),
+    status: urlParams.get("status") as TimerStatus,
+    activeTaskId: urlParams.get("activeTaskId"),
+    sessionsCompleted: urlParams.get("sessionsCompleted"),
+    currentCycleSession: urlParams.get("currentCycleSession")
+  }
+}
+
+const restoreStateFromUrl = (
+  params: ReturnType<typeof extractUrlParams>,
+  setters: {
+    setMode: (mode: TimerMode) => void
+    setTimeLeft: (time: number) => void
+    setTotalTime: (time: number) => void
+    setStatus: (status: TimerStatus) => void
+    setActiveTaskId: (id: string | null) => void
+    setSessionsCompleted: (count: number) => void
+    setCurrentCycleSession: (session: number) => void
+  }
+) => {
+  if (!params) return
+  
+  if (params.mode) setters.setMode(params.mode)
+  if (params.timeLeft) setters.setTimeLeft(Number(params.timeLeft))
+  if (params.totalTime) setters.setTotalTime(Number(params.totalTime))
+  if (params.status && params.status !== "running") setters.setStatus(params.status)
+  if (params.activeTaskId && params.activeTaskId !== "") setters.setActiveTaskId(params.activeTaskId)
+  if (params.sessionsCompleted) setters.setSessionsCompleted(Number(params.sessionsCompleted))
+  if (params.currentCycleSession) setters.setCurrentCycleSession(Number(params.currentCycleSession))
+}
+
 export function FocusTimer() {
   const [mode, setMode] = useState<TimerMode>("focus")
   const [status, setStatus] = useState<TimerStatus>("idle")
@@ -135,34 +178,25 @@ export function FocusTimer() {
   }, [])
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const urlParams = new URLSearchParams(window.location.search)
-      const isPopup = urlParams.get("popup") === "true"
-      setIsPopupMode(isPopup)
+    const isPopup = checkIfPopupMode()
+    setIsPopupMode(isPopup)
 
-      // Restore state from URL if in popup mode
-      if (isPopup) {
-        const savedMode = urlParams.get("mode") as TimerMode
-        const savedTimeLeft = urlParams.get("timeLeft")
-        const savedTotalTime = urlParams.get("totalTime")
-        const savedStatus = urlParams.get("status") as TimerStatus
-        const savedActiveTaskId = urlParams.get("activeTaskId")
-        const savedSessionsCompleted = urlParams.get("sessionsCompleted")
-        const savedCurrentCycleSession = urlParams.get("currentCycleSession")
-
-        if (savedMode) setMode(savedMode)
-        if (savedTimeLeft) setTimeLeft(Number(savedTimeLeft))
-        if (savedTotalTime) setTotalTime(Number(savedTotalTime))
-        if (savedStatus && savedStatus !== "running") setStatus(savedStatus) // Don't auto-start
-        if (savedActiveTaskId && savedActiveTaskId !== "") setActiveTaskId(savedActiveTaskId)
-        if (savedSessionsCompleted) setSessionsCompleted(Number(savedSessionsCompleted))
-        if (savedCurrentCycleSession) setCurrentCycleSession(Number(savedCurrentCycleSession))
-      }
+    if (isPopup) {
+      const urlParams = extractUrlParams()
+      restoreStateFromUrl(urlParams, {
+        setMode,
+        setTimeLeft,
+        setTotalTime,
+        setStatus,
+        setActiveTaskId,
+        setSessionsCompleted,
+        setCurrentCycleSession
+      })
     }
   }, [])
 
   useEffect(() => {
-    if (settings.notificationEnabled && "Notification" in window && Notification.permission === "default") {
+    if (settings.notificationEnabled && "Notification" in globalThis && Notification.permission === "default") {
       Notification.requestPermission()
     }
   }, [settings.notificationEnabled])
@@ -175,11 +209,9 @@ export function FocusTimer() {
       }
       tickingAudioRef.current.volume = settings.tickingVolume / 100
       tickingAudioRef.current.play().catch(() => {})
-    } else {
-      if (tickingAudioRef.current) {
-        tickingAudioRef.current.pause()
-        tickingAudioRef.current.currentTime = 0
-      }
+    } else if (tickingAudioRef.current) {
+      tickingAudioRef.current.pause()
+      tickingAudioRef.current.currentTime = 0
     }
   }, [status, settings.tickingEnabled, settings.tickingVolume])
 
@@ -202,10 +234,8 @@ export function FocusTimer() {
           return prev - 1
         })
       }, 1000)
-    } else {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current)
-      }
+    } else if (intervalRef.current) {
+      clearInterval(intervalRef.current)
     }
 
     return () => {
@@ -243,7 +273,7 @@ export function FocusTimer() {
     }
 
     // Show browser notification
-    if (settings.notificationEnabled && "Notification" in window && Notification.permission === "granted") {
+    if (settings.notificationEnabled && "Notification" in globalThis && Notification.permission === "granted") {
       const modeText = mode === "focus" ? "Focus session" : "Break"
       new Notification("Focus Timer", {
         body: `${modeText} completed! Time for a ${mode === "focus" ? "break" : "focus session"}.`,
@@ -306,6 +336,19 @@ export function FocusTimer() {
     setStatus(autoStart ? "running" : "idle")
   }
 
+  const getDurationForMode = (timerMode: TimerMode, timerSettings: TimerSettings) => {
+    switch (timerMode) {
+      case "focus":
+        return timerSettings.focusDuration * 60
+      case "short-break":
+        return timerSettings.shortBreakDuration * 60
+      case "long-break":
+        return timerSettings.longBreakDuration * 60
+      default:
+        return timerSettings.focusDuration * 60
+    }
+  }
+
   const toggleTimer = () => {
     if (status === "running") {
       setStatus("paused")
@@ -316,12 +359,7 @@ export function FocusTimer() {
 
   const resetTimer = () => {
     setStatus("idle")
-    const duration =
-      mode === "focus"
-        ? settings.focusDuration * 60
-        : mode === "short-break"
-          ? settings.shortBreakDuration * 60
-          : settings.longBreakDuration * 60
+    const duration = getDurationForMode(mode, settings)
     setTimeLeft(duration)
     setTotalTime(duration)
     setCurrentCycleSession(0)
@@ -329,12 +367,7 @@ export function FocusTimer() {
 
   const applySettings = () => {
     setSettings(tempSettings)
-    const duration =
-      mode === "focus"
-        ? tempSettings.focusDuration * 60
-        : mode === "short-break"
-          ? tempSettings.shortBreakDuration * 60
-          : tempSettings.longBreakDuration * 60
+    const duration = getDurationForMode(mode, tempSettings)
     setTimeLeft(duration)
     setTotalTime(duration)
     setStatus("idle")
@@ -449,11 +482,11 @@ export function FocusTimer() {
     } else {
       setActiveTaskId(taskId)
       // Switch to focus mode if not already
-      if (mode !== "focus") {
-        switchMode("focus", true) // Auto-start
-      } else {
+      if (mode === "focus") {
         // If already in focus mode, just start the timer
         setStatus("running")
+      } else {
+        switchMode("focus", true) // Auto-start
       }
     }
   }
@@ -510,7 +543,7 @@ export function FocusTimer() {
     const element = document.elementFromPoint(touch.clientX, touch.clientY)
     const taskElement = element?.closest("[data-task-id]")
     if (taskElement) {
-      const taskId = taskElement.getAttribute("data-task-id")
+      const taskId = (taskElement as HTMLElement).dataset.taskId
       if (taskId && draggedTaskId && taskId !== draggedTaskId) {
         const draggedIndex = tasks.findIndex((t) => t.id === draggedTaskId)
         const targetIndex = tasks.findIndex((t) => t.id === taskId)
@@ -596,7 +629,7 @@ export function FocusTimer() {
     const top = window.screen.height / 2 - height / 2
 
     window.open(
-      `${window.location.pathname}?${params.toString()}`,
+      `${globalThis.location.pathname}?${params.toString()}`,
       "FocusTimer",
       `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`,
     )
@@ -1157,22 +1190,32 @@ export function FocusTimer() {
           </div>
 
           <div className="flex items-center gap-2 flex-wrap">
-            <Badge
-              variant={filterProject === "all" ? "default" : "outline"}
-              className="cursor-pointer h-8 px-2 sm:px-3 text-xs"
+            <button
+              type="button"
+              className={`inline-flex items-center justify-center cursor-pointer h-8 px-2 sm:px-3 text-xs font-medium rounded-full border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 ${
+                filterProject === "all"
+                  ? "border-transparent bg-primary text-primary-foreground hover:bg-primary/80"
+                  : "text-foreground border-input bg-background hover:bg-accent hover:text-accent-foreground"
+              }`}
               onClick={() => setFilterProject("all")}
+              aria-pressed={filterProject === "all"}
             >
               All Projects
-            </Badge>
+            </button>
             {projects.map((project) => (
-              <Badge
+              <button
                 key={project.id}
-                variant={filterProject === project.id ? "default" : "outline"}
-                className="cursor-pointer h-8 px-2 sm:px-3 text-xs"
+                type="button"
+                className={`inline-flex items-center justify-center cursor-pointer h-8 px-2 sm:px-3 text-xs font-medium rounded-full border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 ${
+                  filterProject === project.id
+                    ? "border-transparent bg-primary text-primary-foreground hover:bg-primary/80"
+                    : "text-foreground border-input bg-background hover:bg-accent hover:text-accent-foreground"
+                }`}
                 onClick={() => setFilterProject(project.id)}
+                aria-pressed={filterProject === project.id}
               >
                 {project.name}
-              </Badge>
+              </button>
             ))}
           </div>
 
@@ -1277,7 +1320,7 @@ export function FocusTimer() {
             </div>
           )}
 
-          <div className="space-y-3 max-h-[500px] overflow-y-auto overflow-x-hidden">
+          <div className="space-y-3 max-h-[500px] overflow-y-auto overflow-x-hidden" role="list" aria-label="Task list">
             {getFilteredTasks().length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
                 <Target className="h-12 w-12 mx-auto mb-3 opacity-20" />
@@ -1294,12 +1337,22 @@ export function FocusTimer() {
                       key={task.id}
                       data-task-id={task.id}
                       draggable
+                      role="listitem"
+                      tabIndex={0}
+                      aria-label={`Task: ${task.title}. ${task.sessionsSpent} of ${task.estimatedSessions} sessions completed.`}
+                      aria-grabbed={draggedTaskId === task.id}
                       onDragStart={() => handleDragStart(task.id)}
                       onDragOver={(e) => handleDragOver(e, task.id)}
                       onDragEnd={handleDragEnd}
                       onTouchStart={(e) => handleTouchStart(e, task.id)}
                       onTouchMove={handleTouchMove}
                       onTouchEnd={handleTouchEnd}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault()
+                          setActiveTask(task.id)
+                        }
+                      }}
                       className={`group relative rounded-lg border-2 transition-all duration-200 cursor-move touch-none overflow-hidden ${
                         /* Added overflow-hidden to prevent content overflow */
                         task.id === activeTaskId
@@ -1529,7 +1582,7 @@ export function FocusTimer() {
                   ))}
 
                 {/* Completed tasks - shown with reduced opacity */}
-                {getFilteredTasks().filter((task) => task.completed).length > 0 && (
+                {getFilteredTasks().some((task) => task.completed) && (
                   <div className="pt-4 space-y-2">
                     <p className="text-xs font-medium text-muted-foreground px-2">Completed</p>
                     {getFilteredTasks()

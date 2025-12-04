@@ -124,9 +124,9 @@ export function GradeHistory({ history: externalHistory, onUpdateHistory }: Grad
     // Create a map of subject_id to subject name
     const subjectMap = new Map<string, string>()
     if (subjectsRes.data) {
-      subjectsRes.data.forEach((subject: Subject) => {
+      for (const subject of subjectsRes.data) {
         subjectMap.set(subject.id, subject.name)
-      })
+      }
     }
 
     if (gradesRes.data) {
@@ -178,8 +178,8 @@ export function GradeHistory({ history: externalHistory, onUpdateHistory }: Grad
   }
 
   const getSubjects = () => {
-    const subjects = Array.from(new Set(history.map((entry) => entry.subject).filter(Boolean)))
-    return subjects.sort()
+    const subjects = Array.from(new Set(history.map((entry) => entry.subject).filter((subject): subject is string => Boolean(subject))))
+    return subjects.sort((a, b) => a.localeCompare(b))
   }
 
   const getFilteredHistory = () => {

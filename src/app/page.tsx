@@ -41,6 +41,84 @@ interface Tool {
   comingSoon?: boolean // Added comingSoon property
 }
 
+interface ToolCardProps {
+  tool: Tool
+  favorites: string[]
+  toggleFavorite: (toolId: string) => void
+  isClient: boolean
+}
+
+const ToolCard = ({ tool, favorites, toggleFavorite, isClient }: ToolCardProps) => {
+  const isFavorite = favorites.includes(tool.id)
+
+  return (
+    <div className="relative group h-full">
+      {!tool.comingSoon && (
+        <button
+          onClick={(e) => {
+            e.preventDefault()
+            toggleFavorite(tool.id)
+          }}
+          className="absolute top-3 right-3 z-10 p-1.5 rounded-full bg-background/80 backdrop-blur-sm border border-border cursor-pointer hover:bg-background transition-all duration-200 opacity-0 group-hover:opacity-100"
+          aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+        >
+          <Star
+            className={cn(
+              "h-4 w-4 transition-all duration-200",
+              isFavorite ? "fill-yellow-500 text-yellow-500" : "text-muted-foreground",
+            )}
+          />
+        </button>
+      )}
+
+      <Link
+        href={tool.comingSoon ? "#" : tool.link}
+        className={cn(
+          "block h-full transition-all duration-200 focus:outline-none rounded-lg",
+          tool.comingSoon && "pointer-events-none",
+        )}
+        onClick={(e) => {
+          if (tool.comingSoon) {
+            e.preventDefault()
+          }
+        }}
+      >
+        <Card className="h-full overflow-hidden transition-all duration-200 hover:shadow-lg hover:translate-y-[-2px] border-2 border-border/60 dark:border-border/80 hover:border-primary/50 dark:hover:border-primary/60 relative">
+          <CardContent className="p-0 h-full">
+            <div className="flex flex-col h-full">
+              <div className={`${tool.color} p-4 flex items-center gap-3`}>
+                <div className={`rounded-full p-2 ${tool.iconBg} ${tool.iconColor}`}>
+                  {isClient ? <tool.icon className="h-5 w-5" /> : <div className="h-5 w-5" />}
+                </div>
+                <h3 className={`font-medium text-base ${tool.textColor}`}>{tool.title}</h3>
+              </div>
+              <div className="p-4 flex-1 flex flex-col justify-between bg-card border-t border-border/40">
+                <p className="text-sm text-muted-foreground">{tool.description}</p>
+                <div className="flex items-center justify-end mt-4 text-sm font-medium text-foreground">
+                  <span>Open Tool</span>
+                  <ChevronRight className="h-4 w-4 ml-1" />
+                </div>
+              </div>
+            </div>
+
+            {tool.comingSoon && (
+              <div className="absolute inset-0 bg-background/60 dark:bg-background/70 backdrop-blur-md flex flex-col items-center justify-center gap-3 rounded-lg border-2 border-primary/20">
+                <div className="bg-primary/10 backdrop-blur-sm rounded-full p-3 border border-primary/20">
+                  <Lock className="h-6 w-6 text-primary" />
+                </div>
+                <div className="text-center px-4">
+                  <p className="text-lg font-semibold text-foreground mb-1">Coming Soon</p>
+                  <p className="text-xs text-muted-foreground">We're working on this feature</p>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </Link>
+    </div>
+  )
+}
+
 export default function Home() {
   const [favorites, setFavorites] = useState<string[]>([])
   const [searchQuery, setSearchQuery] = useState("")
@@ -244,77 +322,6 @@ export default function Home() {
   const academicTools = filteredTools.filter((tool) => tool.category === "academic")
   const resourceTools = filteredTools.filter((tool) => tool.category === "resources")
 
-  const ToolCard = ({ tool }: { tool: Tool }) => {
-    const isFavorite = favorites.includes(tool.id)
-
-    return (
-      <div className="relative group h-full">
-        {!tool.comingSoon && (
-          <button
-            onClick={(e) => {
-              e.preventDefault()
-              toggleFavorite(tool.id)
-            }}
-            className="absolute top-3 right-3 z-10 p-1.5 rounded-full bg-background/80 backdrop-blur-sm border border-border cursor-pointer hover:bg-background transition-all duration-200 opacity-0 group-hover:opacity-100"
-            aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
-          >
-            <Star
-              className={cn(
-                "h-4 w-4 transition-all duration-200",
-                isFavorite ? "fill-yellow-500 text-yellow-500" : "text-muted-foreground",
-              )}
-            />
-          </button>
-        )}
-
-        <Link
-          href={tool.comingSoon ? "#" : tool.link}
-          className={cn(
-            "block h-full transition-all duration-200 focus:outline-none rounded-lg",
-            tool.comingSoon && "pointer-events-none",
-          )}
-          onClick={(e) => {
-            if (tool.comingSoon) {
-              e.preventDefault()
-            }
-          }}
-        >
-          <Card className="h-full overflow-hidden transition-all duration-200 hover:shadow-lg hover:translate-y-[-2px] border-2 border-border/60 dark:border-border/80 hover:border-primary/50 dark:hover:border-primary/60 relative">
-            <CardContent className="p-0 h-full">
-              <div className="flex flex-col h-full">
-                <div className={`${tool.color} p-4 flex items-center gap-3`}>
-                  <div className={`rounded-full p-2 ${tool.iconBg} ${tool.iconColor}`}>
-                    {isClient ? <tool.icon className="h-5 w-5" /> : <div className="h-5 w-5" />}
-                  </div>
-                  <h3 className={`font-medium text-base ${tool.textColor}`}>{tool.title}</h3>
-                </div>
-                <div className="p-4 flex-1 flex flex-col justify-between bg-card border-t border-border/40">
-                  <p className="text-sm text-muted-foreground">{tool.description}</p>
-                  <div className="flex items-center justify-end mt-4 text-sm font-medium text-foreground">
-                    <span>Open Tool</span>
-                    <ChevronRight className="h-4 w-4 ml-1" />
-                  </div>
-                </div>
-              </div>
-
-              {tool.comingSoon && (
-                <div className="absolute inset-0 bg-background/60 dark:bg-background/70 backdrop-blur-md flex flex-col items-center justify-center gap-3 rounded-lg border-2 border-primary/20">
-                  <div className="bg-primary/10 backdrop-blur-sm rounded-full p-3 border border-primary/20">
-                    <Lock className="h-6 w-6 text-primary" />
-                  </div>
-                  <div className="text-center px-4">
-                    <p className="text-lg font-semibold text-foreground mb-1">Coming Soon</p>
-                    <p className="text-xs text-muted-foreground">We're working on this feature</p>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </Link>
-      </div>
-    )
-  }
-
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -399,7 +406,7 @@ export default function Home() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {favoriteTools.map((tool) => (
-              <ToolCard key={tool.id} tool={tool} />
+              <ToolCard key={tool.id} tool={tool} favorites={favorites} toggleFavorite={toggleFavorite} isClient={isClient} />
             ))}
           </div>
         </div>
@@ -414,7 +421,7 @@ export default function Home() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {productivityTools.map((tool) => (
-              <ToolCard key={tool.id} tool={tool} />
+              <ToolCard key={tool.id} tool={tool} favorites={favorites} toggleFavorite={toggleFavorite} isClient={isClient} />
             ))}
           </div>
         </div>
@@ -429,7 +436,7 @@ export default function Home() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {academicTools.map((tool) => (
-              <ToolCard key={tool.id} tool={tool} />
+              <ToolCard key={tool.id} tool={tool} favorites={favorites} toggleFavorite={toggleFavorite} isClient={isClient} />
             ))}
           </div>
         </div>
@@ -444,7 +451,7 @@ export default function Home() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {resourceTools.map((tool) => (
-              <ToolCard key={tool.id} tool={tool} />
+              <ToolCard key={tool.id} tool={tool} favorites={favorites} toggleFavorite={toggleFavorite} isClient={isClient} />
             ))}
           </div>
         </div>

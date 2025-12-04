@@ -53,7 +53,7 @@ export function SecuritySettings() {
   }
 
   const handleEmailChange = async () => {
-    if (!newEmail || !newEmail.includes("@")) {
+    if (!newEmail?.includes("@")) {
       toast.error("Please enter a valid email address")
       return
     }

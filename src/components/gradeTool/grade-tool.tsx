@@ -327,7 +327,7 @@ export function GradeTool() {
 
     const gradeNum = Number.parseFloat(gradeForm.grade)
     const selectedSystem = GRADING_SYSTEMS[system]
-    if (isNaN(gradeNum) || gradeNum < selectedSystem.min || gradeNum > selectedSystem.max) return
+    if (Number.isNaN(gradeNum) || gradeNum < selectedSystem.min || gradeNum > selectedSystem.max) return
 
     const subject = subjects.find((s) => s.id === subjectId)
     if (!subject) return
@@ -367,7 +367,7 @@ export function GradeTool() {
 
     const gradeNum = Number.parseFloat(gradeForm.grade)
     const selectedSystem = GRADING_SYSTEMS[system]
-    if (isNaN(gradeNum) || gradeNum < selectedSystem.min || gradeNum > selectedSystem.max) return
+    if (Number.isNaN(gradeNum) || gradeNum < selectedSystem.min || gradeNum > selectedSystem.max) return
 
     const { data, error } = await supabase
       .from("grades")
@@ -583,13 +583,7 @@ export function GradeTool() {
 
       {/* Add Semester Button */}
       <div className="mb-6">
-        {!showNewSemester ? (
-          <Button onClick={() => setShowNewSemester(true)} className="w-full cursor-pointer" variant="outline">
-            <Plus className="h-4 w-4 mr-2" />
-            Add Semester
-          </Button>
-        ) : (
-          // Add Semester Form - Update to use DatePicker
+        {showNewSemester ? (
           <div className="p-4 bg-muted/30 border border-border/40 rounded-xl">
             <h3 className="font-semibold mb-3 flex items-center gap-2">
               <Layers className="h-4 w-4" />
@@ -635,6 +629,11 @@ export function GradeTool() {
               </div>
             </div>
           </div>
+        ) : (
+          <Button onClick={() => setShowNewSemester(true)} className="w-full cursor-pointer" variant="outline">
+            <Plus className="h-4 w-4 mr-2" />
+            Add Semester
+          </Button>
         )}
       </div>
 
@@ -658,9 +657,11 @@ export function GradeTool() {
                 {/* Semester Header */}
                 <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 group">
                   <div className="flex items-center justify-between">
-                    <div
-                      className="flex items-center gap-3 flex-1 cursor-pointer"
+                    <button
+                      className="flex items-center gap-3 flex-1 text-left bg-transparent border-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 rounded p-1 -m-1"
                       onClick={() => toggleSemester(semester.id)}
+                      aria-expanded={isExpanded}
+                      aria-controls={`semester-content-${semester.id}`}
                     >
                       {isExpanded ? (
                         <ChevronDown className="h-5 w-5 text-blue-600 dark:text-blue-400" />
@@ -674,7 +675,7 @@ export function GradeTool() {
                           {semester.end_date && new Date(semester.end_date).toLocaleDateString()}
                         </p>
                       </div>
-                    </div>
+                    </button>
                     <div className="flex items-center gap-2">
                       {semesterAvg !== null && (
                         <div className="text-right">
@@ -720,18 +721,8 @@ export function GradeTool() {
 
                 {/* Semester Content */}
                 {isExpanded && (
-                  <div className="p-4 bg-background space-y-3">
-                    {showNewSubject !== semester.id && !editingSubject ? (
-                      <Button
-                        onClick={() => setShowNewSubject(semester.id)}
-                        variant="outline"
-                        size="sm"
-                        className="w-full cursor-pointer"
-                      >
-                        <Plus className="h-3 w-3 mr-2" />
-                        Add Subject
-                      </Button>
-                    ) : showNewSubject === semester.id ||
+                  <div id={`semester-content-${semester.id}`} className="p-4 bg-background space-y-3">
+                    {showNewSubject === semester.id ||
                       (editingSubject && subjects.find((s) => s.id === editingSubject)?.semester_id === semester.id) ? (
                       <div className="p-3 bg-muted/30 rounded-lg border border-border/40">
                         <div className="flex gap-2">
@@ -764,7 +755,17 @@ export function GradeTool() {
                           </Button>
                         </div>
                       </div>
-                    ) : null}
+                    ) : (
+                      <Button
+                        onClick={() => setShowNewSubject(semester.id)}
+                        variant="outline"
+                        size="sm"
+                        className="w-full cursor-pointer"
+                      >
+                        <Plus className="h-3 w-3 mr-2" />
+                        Add Subject
+                      </Button>
+                    )}
 
                     {/* Subjects List */}
                     {semesterSubjects.length === 0 ? (
@@ -785,20 +786,22 @@ export function GradeTool() {
                               {/* Subject Header */}
                               <div className="p-3 bg-muted/20 group">
                                 <div className="flex items-center justify-between">
-                                  <div
-                                    className="flex items-center gap-2 flex-1 cursor-pointer"
+                                  <button
+                                    className="flex items-center gap-2 flex-1 text-left bg-transparent border-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 rounded p-1 -m-1"
                                     onClick={() => toggleSubject(subject.id)}
+                                    aria-expanded={isSubjectExpanded}
+                                    aria-controls={`subject-content-${subject.id}`}
                                   >
                                     {isSubjectExpanded ? (
                                       <ChevronDown className="h-4 w-4" />
                                     ) : (
                                       <ChevronRight className="h-4 w-4" />
                                     )}
-                                    <span className="font-medium cursor pointer">{subject.name}</span>
+                                    <span className="font-medium">{subject.name}</span>
                                     <Badge variant="outline" className="text-xs">
                                       {subjectGrades.length} grades
                                     </Badge>
-                                  </div>
+                                  </button>
                                   <div className="flex items-center gap-2">
                                     {subjectAvg !== null && (
                                       <div className="text-right">
@@ -849,19 +852,9 @@ export function GradeTool() {
 
                               {/* Subject Content (Grades) */}
                               {isSubjectExpanded && (
-                                <div className="p-3 bg-background space-y-2">
+                                <div id={`subject-content-${subject.id}`} className="p-3 bg-background space-y-2">
                                   {/* Add/Edit Grade Form */}
-                                  {showNewGrade !== subject.id ? (
-                                    <Button
-                                      onClick={() => setShowNewGrade(subject.id)}
-                                      variant="outline"
-                                      size="sm"
-                                      className="w-full cursor-pointer"
-                                    >
-                                      <Plus className="h-3 w-3 mr-2" />
-                                      Add Grade
-                                    </Button>
-                                  ) : (
+                                  {showNewGrade === subject.id ? (
                                     <div className="p-3 bg-muted/30 border border-border/40 rounded-lg">
                                       <div className="space-y-2">
                                         <div className="grid grid-cols-2 gap-2">
@@ -956,6 +949,16 @@ export function GradeTool() {
                                         </div>
                                       </div>
                                     </div>
+                                  ) : (
+                                    <Button
+                                      onClick={() => setShowNewGrade(subject.id)}
+                                      variant="outline"
+                                      size="sm"
+                                      className="w-full cursor-pointer"
+                                    >
+                                      <Plus className="h-3 w-3 mr-2" />
+                                      Add Grade
+                                    </Button>
                                   )}
 
                                   {/* Grades List */}
